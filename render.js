@@ -1,3 +1,18 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCYPnmrNRq3UGOafII08CY8kOYiTBnfzOo",
+  authDomain: "rolex-bio-ede79.firebaseapp.com",
+  projectId: "rolex-bio-ede79",
+  storageBucket: "rolex-bio-ede79.firebasestorage.app",
+  messagingSenderId: "197084877208",
+  appId: "1:197084877208:web:1f2de252e4e86376f0dbed",
+  measurementId: "G-4B5V7W16WE"
+};
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
 /* render.js — Tek kaynak: hem herkese açık profil sayfası hem de
    admin panelindeki canlı önizleme AYNI bu fonksiyonu kullanır.
    Böylece "önizlemede gördüğün = ziyaretçinin gördüğü" garanti edilir
