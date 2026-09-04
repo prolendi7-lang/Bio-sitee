@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap | Bio</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .box { width: 100%; max-width: 380px; background: rgba(22,22,22,0.95); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 32px 26px; }
+        h1 { font-size: 22px; margin-bottom: 22px; }
+        label { display: block; font-size: 12px; color: #999; margin: 14px 0 6px; }
+        input { width: 100%; padding: 12px; background: #141414; border: 1px solid #2a2a2a; border-radius: 10px; color: #fff; font-size: 14px; font-family: inherit; }
+        input:focus { outline: none; border-color: #ff3b3b; }
+        button { width: 100%; padding: 13px; margin-top: 22px; background: linear-gradient(135deg, #ff3b3b, #cc0000); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        button:hover { filter: brightness(1.08); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .forgot { display: block; text-align: right; font-size: 12px; color: #888; margin-top: 8px; }
+        .msg { margin-top: 14px; font-size: 13px; text-align: center; display: none; }
+        .msg.error { color: #f87171; display: block; }
+        .msg.success { color: #4ade80; display: block; }
+        .foot { text-align: center; margin-top: 18px; font-size: 13px; color: #888; }
+        .foot a { color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Giriş Yap</h1>
+        <form id="loginForm">
+            <label>E-posta</label>
+            <input type="email" id="email" required>
+            <label>Şifre</label>
+            <input type="password" id="password" required>
+            <a class="forgot" href="#" id="forgotLink">Şifremi unuttum</a>
+            <button type="submit" id="submitBtn">Giriş Yap</button>
+            <div class="msg" id="msg"></div>
+        </form>
+        <div class="foot">Hesabın yok mu? <a href="/register.html">Kayıt ol</a></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNnqSKYVW_JMc4CO5KoNQb4ctrMdIMS6s",
+            authDomain: "rolex-bio.firebaseapp.com",
+            projectId: "rolex-bio",
+            storageBucket: "rolex-bio.firebasestorage.app",
+            messagingSenderId: "182739949955",
+            appId: "1:182739949955:web:bd859e25ceee8936273eb6"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        function showMsg(text, type) {
+            const m = document.getElementById('msg');
+            m.textContent = text; m.className = 'msg ' + type;
+        }
+
+        auth.onAuthStateChanged(user => { if (user) window.location.href = '/admin.html'; });
+
+        function explainAuthError(err) {
+            const code = err && err.code;
+            if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') return 'E-posta veya şifre hatalı.';
+            if (code === 'auth/invalid-email') return 'Geçersiz e-posta adresi.';
+            if (code === 'auth/too-many-requests') return 'Çok fazla başarısız deneme yapıldı. Biraz bekleyip tekrar dene.';
+            if (code === 'auth/network-request-failed') return 'Ağ hatası: internet bağlantını kontrol et.';
+            if (code === 'auth/user-disabled') return 'Bu hesap devre dışı bırakılmış.';
+            return 'Giriş yapılamadı: ' + (code || (err && err.message) || 'bilinmeyen hata');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            try {
+                await auth.signInWithEmailAndPassword(
+                    document.getElementById('email').value.trim(),
+                    document.getElementById('password').value
+                );
+                window.location.href = '/admin.html';
+            } catch (err) {
+                showMsg(explainAuthError(err), 'error');
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('forgotLink').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            if (!email) { showMsg('Önce e-posta adresini gir.', 'error'); return; }
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showMsg('Şifre sıfırlama bağlantısı gönderildi (spam klasörünü de kontrol et).', 'success');
+            } catch (err) {
+                showMsg(explainAuthError(err), 'error');
+            }
+        });
+    </script>
+</body>
+</html>

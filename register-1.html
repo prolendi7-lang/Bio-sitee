@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ol | Bio</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .box { width: 100%; max-width: 380px; background: rgba(22,22,22,0.95); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 32px 26px; }
+        h1 { font-size: 22px; margin-bottom: 4px; }
+        .sub { color: #888; font-size: 13px; margin-bottom: 22px; }
+        label { display: block; font-size: 12px; color: #999; margin: 14px 0 6px; }
+        .prefix-field { display: flex; align-items: center; background: #141414; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; }
+        .prefix-field span { padding: 12px 4px 12px 12px; color: #666; font-size: 14px; }
+        input {
+            width: 100%; padding: 12px; background: #141414; border: 1px solid #2a2a2a; border-radius: 10px;
+            color: #fff; font-size: 14px; font-family: inherit;
+        }
+        .prefix-field input { border: none; background: transparent; padding-left: 2px; }
+        input:focus { outline: none; border-color: #ff3b3b; }
+        .hint { font-size: 12px; margin-top: 6px; min-height: 16px; }
+        .hint.ok { color: #4ade80; } .hint.bad { color: #f87171; } .hint.checking { color: #888; }
+        button { width: 100%; padding: 13px; margin-top: 22px; background: linear-gradient(135deg, #ff3b3b, #cc0000); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        button:hover { filter: brightness(1.08); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .msg { margin-top: 14px; font-size: 13px; text-align: center; display: none; }
+        .msg.error { color: #f87171; display: block; }
+        .msg.success { color: #4ade80; display: block; }
+        .foot { text-align: center; margin-top: 18px; font-size: 13px; color: #888; }
+        .foot a { color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Kayıt Ol</h1>
+        <p class="sub">Kendi bio sayfanı oluştur.</p>
+
+        <form id="regForm">
+            <label>Kullanıcı Adı</label>
+            <div class="prefix-field">
+                <span id="hostLabel">site.com/</span>
+                <input type="text" id="username" placeholder="Ahmet" maxlength="20" autocomplete="off" required>
+            </div>
+            <div class="hint" id="usernameHint"></div>
+
+            <label>E-posta</label>
+            <input type="email" id="email" placeholder="ornek@eposta.com" required>
+
+            <label>Şifre</label>
+            <input type="password" id="password" placeholder="En az 6 karakter" minlength="6" required>
+
+            <label>Şifre (tekrar)</label>
+            <input type="password" id="password2" placeholder="Şifreni tekrar gir" minlength="6" required>
+
+            <button type="submit" id="submitBtn">Hesap Oluştur</button>
+            <div class="msg" id="msg"></div>
+        </form>
+        <div class="foot">Zaten hesabın var mı? <a href="/login.html">Giriş yap</a></div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNnqSKYVW_JMc4CO5KoNQb4ctrMdIMS6s",
+            authDomain: "rolex-bio.firebaseapp.com",
+            projectId: "rolex-bio",
+            storageBucket: "rolex-bio.firebasestorage.app",
+            messagingSenderId: "182739949955",
+            appId: "1:182739949955:web:bd859e25ceee8936273eb6"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        document.getElementById('hostLabel').textContent = window.location.host + '/';
+
+        const RESERVED = ['admin','login','register','index','api','www','app','static','assets',
+            'favicon.ico','null','undefined','profile','preview','discover','render.js','profile.css','firestore.rules'];
+
+        const usernameInput = document.getElementById('username');
+        const hint = document.getElementById('usernameHint');
+        let usernameValid = false;
+        let checkTimer = null;
+
+        usernameInput.addEventListener('input', () => {
+            usernameInput.value = usernameInput.value.replace(/[^a-zA-Z0-9_]/g, '');
+            usernameValid = false;
+            clearTimeout(checkTimer);
+            const v = usernameInput.value.trim();
+            if (v.length < 3) { hint.textContent = 'En az 3 karakter (harf, rakam, _)'; hint.className = 'hint'; return; }
+            if (RESERVED.includes(v.toLowerCase())) { hint.textContent = 'Bu kullanıcı adı ayrılmış, başka bir tane dene'; hint.className = 'hint bad'; return; }
+            hint.textContent = 'Kontrol ediliyor...'; hint.className = 'hint checking';
+            checkTimer = setTimeout(() => {
+                db.collection('usernames').doc(v.toLowerCase()).get().then(doc => {
+                    if (doc.exists) { hint.textContent = '❌ Bu kullanıcı adı alınmış'; hint.className = 'hint bad'; usernameValid = false; }
+                    else { hint.textContent = '✓ ' + v + ' kullanılabilir'; hint.className = 'hint ok'; usernameValid = true; }
+                }).catch(() => { hint.textContent = ''; });
+            }, 450);
+        });
+
+        function showMsg(text, type) {
+            const m = document.getElementById('msg');
+            m.textContent = text; m.className = 'msg ' + type;
+        }
+
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = usernameInput.value.trim();
+            const usernameLower = username.toLowerCase();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const password2 = document.getElementById('password2').value;
+            const btn = document.getElementById('submitBtn');
+
+            if (username.length < 3 || RESERVED.includes(usernameLower)) { showMsg('Geçerli bir kullanıcı adı gir.', 'error'); return; }
+            if (password !== password2) { showMsg('Şifreler eşleşmiyor.', 'error'); return; }
+            if (password.length < 6) { showMsg('Şifre en az 6 karakter olmalı.', 'error'); return; }
+
+            btn.disabled = true; showMsg('Hesap oluşturuluyor...', 'success');
+
+            try {
+                const unameCheck = await db.collection('usernames').doc(usernameLower).get();
+                if (unameCheck.exists) { showMsg('Bu kullanıcı adı az önce alındı, başka bir tane dene.', 'error'); btn.disabled = false; return; }
+
+                let cred;
+                let firestoreOk = false;
+                try {
+                    cred = await auth.createUserWithEmailAndPassword(email, password);
+                } catch (authErr) {
+                    showMsg(explainAuthError(authErr), 'error');
+                    btn.disabled = false;
+                    return;
+                }
+                const uid = cred.user.uid;
+
+                try {
+                    await db.runTransaction(async (tx) => {
+                        const unameRef = db.collection('usernames').doc(usernameLower);
+                        const unameSnap = await tx.get(unameRef);
+                        if (unameSnap.exists) throw new Error('taken');
+                        tx.set(unameRef, { uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                        // E-posta adresi HERKESE AÇIK belgeye yazılmaz — ayrı, sadece
+                        // hesap sahibinin okuyabildiği bir alt belgede saklanır.
+                        tx.set(db.collection('users').doc(uid).collection('private').doc('data'), { email });
+                        tx.set(db.collection('users').doc(uid), {
+                            uid, username, usernameLower,
+                            name: username, bio: '', avatar: '',
+                            emailVerified: false,
+                            emojiLeft: '', emojiRight: '', emoji3d: true,
+                            nameGradient: '', nameGlow: '', nameNeon: false, neonColor: '#ffffff', neonSize: 10,
+                            showBadge: true, badgeIcon: '✓', badgeColor: '',
+                            cardOpacity: 0.85, cardBlur: 20,
+                            bgColor: '#0a0a0a', bgImage: '', particles: true, particleColor: 'rgba(255,255,255,0.5)', particleCount: 40,
+                            links: [], btnGlow: true, btnShimmer: true, btnBgColor: '', btnBorderColor: '', btnHoverColor: '', btnHoverBorder: '',
+                            musicUrl: '', musicTitle: '', musicArtist: '', musicCover: '', musicAutoplay: true, musicOpacity: 0.9, musicBlur: 10,
+                            views: 0, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    });
+                    firestoreOk = true;
+                } catch (txErr) {
+                    // Auth hesabı oluştu ama Firestore'a yazamadık — GERÇEK sebebi göster,
+                    // sadece "kullanıcı adı alınmış" deme (öyle olmayabilir!)
+                    await cred.user.delete().catch(() => {});
+                    if (txErr && txErr.message === 'taken') {
+                        showMsg('Bu kullanıcı adı az önce alındı. Lütfen tekrar dene.', 'error');
+                    } else if (txErr && txErr.code === 'permission-denied') {
+                        showMsg('Veritabanı izin hatası (permission-denied): Firestore güvenlik kurallarını yayınladın mı? Firebase Console → Firestore Database → Rules kısmına firestore.rules dosyasının içeriğini yapıştırıp Publish demen gerekiyor.', 'error');
+                    } else if (txErr && (txErr.code === 'unavailable' || txErr.code === 'not-found')) {
+                        showMsg('Veritabanına ulaşılamadı: Firebase Console → Firestore Database bölümünden veritabanını oluşturdun mu (Create Database)?', 'error');
+                    } else {
+                        showMsg('Firestore hatası: ' + (txErr && (txErr.code || txErr.message) || 'bilinmeyen hata') + '. Firebase Console\'da Firestore Database\'in oluşturulduğundan ve kuralların yayınlandığından emin ol.', 'error');
+                    }
+                    btn.disabled = false;
+                    return;
+                }
+
+                try {
+                    await cred.user.sendEmailVerification();
+                    showMsg('Hesap oluşturuldu! Doğrulama e-postası gönderildi (gelen kutunu ve spam/gereksiz klasörünü kontrol et), yönlendiriliyorsun...', 'success');
+                } catch (mailErr) {
+                    // E-posta gönderilemedi ama hesap ZATEN oluşturuldu — bunu gizleme.
+                    showMsg('Hesabın oluşturuldu ama doğrulama e-postası gönderilemedi (' + (mailErr.code || mailErr.message) + '). Panelden "Tekrar Gönder" ile deneyebilirsin. Yönlendiriliyorsun...', 'success');
+                }
+                setTimeout(() => { window.location.href = '/admin.html'; }, firestoreOk ? 1800 : 0);
+            } catch (err) {
+                showMsg(explainAuthError(err), 'error');
+                btn.disabled = false;
+            }
+        });
+
+        function explainAuthError(err) {
+            const code = err && err.code;
+            if (code === 'auth/email-already-in-use') return 'Bu e-posta zaten kayıtlı.';
+            if (code === 'auth/invalid-email') return 'Geçersiz e-posta adresi.';
+            if (code === 'auth/weak-password') return 'Şifre çok zayıf (en az 6 karakter).';
+            if (code === 'auth/operation-not-allowed') return 'Kayıt kapalı görünüyor: Firebase Console → Authentication → Sign-in method\'dan "Email/Password" sağlayıcısını etkinleştirmen gerekiyor.';
+            if (code === 'auth/network-request-failed') return 'Ağ hatası: internet bağlantını kontrol et.';
+            if (code === 'auth/too-many-requests') return 'Çok fazla deneme yapıldı, biraz sonra tekrar dene.';
+            if (code === 'auth/invalid-api-key' || code === 'auth/api-key-not-valid') return 'Firebase yapılandırma hatası (API key geçersiz). Firebase Console\'daki Web App ayarlarını kontrol et.';
+            return 'Hata: ' + (code || (err && err.message) || 'bilinmeyen') + '. Firebase Console\'da Authentication → Email/Password açık mı ve Firestore Database oluşturulmuş mu kontrol et.';
+        }
+    </script>
+</body>
+</html>

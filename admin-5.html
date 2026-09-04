@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio Panelim</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; }
+        .topbar {
+            position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; background: rgba(10,10,10,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .topbar .title { font-weight: 700; background: linear-gradient(135deg, #ff0000, #ff4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .topbar .right { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+        .url-chip { background: #141414; border: 1px solid #2a2a2a; border-radius: 20px; padding: 6px 12px; color: #ccc; cursor: pointer; }
+        .logout-btn { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+
+        .tabs { display: none; gap: 8px; padding: 10px 14px; }
+        .tabs button { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #2a2a2a; background: #141414; color: #ccc; font-size: 13px; }
+        .tabs button.active { background: #ff0000; border-color: #ff0000; color: #fff; }
+
+        .layout { display: flex; align-items: flex-start; gap: 0; max-width: 1200px; margin: 0 auto; }
+        .editPane { flex: 1; min-width: 0; padding: 16px; }
+        .previewPane {
+            width: 420px; flex-shrink: 0; position: sticky; top: 61px; height: calc(100vh - 61px);
+            display: flex; align-items: center; justify-content: center; border-left: 1px solid rgba(255,255,255,0.08);
+        }
+        .previewPane iframe { width: 100%; height: 92%; border: none; background: #0a0a0a; }
+
+        .card { background: rgba(22,22,22,0.95); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 22px; margin-bottom: 14px; }
+        .card h3 { margin-bottom: 14px; color: #ff4444; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        .card h4 { color: #aaa; font-size: 12px; margin: 12px 0 6px; text-transform: uppercase; letter-spacing: 1px; }
+        input, textarea, select { width: 100%; padding: 11px; margin-bottom: 9px; background: #141414; border: 1px solid #2a2a2a; border-radius: 10px; color: #fff; font-size: 13px; font-family: inherit; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #ff0000; }
+        input[type="range"] { width: 100%; accent-color: #ff0000; padding: 0; margin: 4px 0; }
+        .range-label { display: flex; justify-content: space-between; font-size: 11px; color: #666; }
+        button.action { width: 100%; padding: 12px; background: linear-gradient(135deg, #ff0000, #cc0000); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; letter-spacing: 1px; transition: all 0.3s; margin-top: 5px; }
+        button.action:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,0,0,0.3); }
+        button.secondary { background: rgba(255,255,255,0.08); }
+        button.danger { background: rgba(255,0,0,0.6); }
+        .effect-btn { display: inline-block; padding: 8px 14px; margin: 4px; border-radius: 20px; border: 1px solid #333; background: #1a1a1a; color: #ccc; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+        .effect-btn:hover, .effect-btn.active { background: #ff0000; border-color: #ff0000; color: #fff; }
+        .link-item { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; padding: 10px; background: #141414; border-radius: 10px; flex-wrap: wrap; }
+        .link-item input, .link-item select { margin-bottom: 0; flex: 1; min-width: 50px; }
+        .link-item button { width: auto; padding: 7px 10px; font-size: 11px; }
+        .message { padding: 12px; border-radius: 8px; margin-bottom: 10px; text-align: center; font-size: 13px; display: none; }
+        .success { background: rgba(0,200,0,0.2); color: #0f0; }
+        .error { background: rgba(255,0,0,0.2); color: #f00; }
+        .inline-group { display: flex; gap: 8px; }
+        .inline-group input, .inline-group select { flex: 1; }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; }
+        .toggle-row span { font-size: 13px; }
+        .toggle-row input[type="checkbox"] { width: auto; transform: scale(1.3); accent-color: #ff0000; }
+        .template-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .tpl-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #ccc; cursor: pointer; font-size: 11px; }
+        .tpl-btn:hover { background: #ff0000; border-color: #ff0000; color: #fff; }
+        .hidden { display: none !important; }
+        #gate { position: fixed; inset: 0; background: #0a0a0a; display: flex; align-items: center; justify-content: center; z-index: 100; color: #888; font-size: 14px; }
+
+        .verify-banner {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+            background: rgba(255,180,0,0.1); border-bottom: 1px solid rgba(255,180,0,0.3); color: #ffcc66;
+            padding: 10px 18px; font-size: 13px;
+        }
+        .verify-banner .btns { display: flex; gap: 8px; }
+        .verify-banner button { width: auto; padding: 7px 12px; font-size: 12px; border-radius: 8px; border: 1px solid rgba(255,204,102,0.4); background: rgba(255,204,102,0.12); color: #ffcc66; cursor: pointer; }
+        .verify-banner button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .verify-banner.hidden { display: none; }
+
+        .danger-zone { border-color: rgba(255,0,0,0.3); }
+        .danger-zone h3 { color: #f87171; }
+        .hint.ok { color: #4ade80; } .hint.bad { color: #f87171; } .hint.checking { color: #888; }
+
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            .previewPane { position: static; width: 100%; height: 480px; border-left: none; border-top: 1px solid rgba(255,255,255,0.08); }
+            .tabs { display: flex; }
+            .editPane.tab-hidden, .previewPane.tab-hidden { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="gate">Yükleniyor...</div>
+
+    <div id="app" class="hidden">
+        <div class="topbar">
+            <span class="title">⚙️ Bio Panelim</span>
+            <div class="right">
+                <a href="/discover.html" target="_blank" style="color:#ccc;font-size:13px;text-decoration:none;">🔎 Keşfet</a>
+                <span class="url-chip" id="urlChip" title="Kopyalamak için tıkla">site.com/kullanici</span>
+                <button class="logout-btn" id="logoutBtn">Çıkış</button>
+            </div>
+        </div>
+
+        <div class="verify-banner hidden" id="verifyBanner">
+            <span>📧 E-posta adresini henüz doğrulamadın. Hesabının güvenliği için doğrulamanı öneririz.</span>
+            <div class="btns">
+                <button id="resendVerifyBtn">Tekrar Gönder</button>
+                <button id="checkVerifyBtn">Doğruladım, Kontrol Et</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="active" id="tabEdit">✏️ Düzenle</button>
+            <button id="tabPreview">👁 Önizleme</button>
+        </div>
+
+        <div class="layout">
+            <div class="editPane" id="editPane">
+                <div class="message" id="message"></div>
+
+                <div class="card">
+                    <h3>👤 Profil</h3>
+                    <input type="text" id="nameInput" placeholder="İsim">
+                    <textarea id="bioInput" placeholder="Açıklama" rows="2"></textarea>
+                    <input type="text" id="avatarInput" placeholder="Fotoğraf linki (https://...)">
+
+                    <h4>Yazı Tipi</h4>
+                    <select id="fontFamily">
+                        <option value="">Standart (Segoe UI)</option>
+                        <option value="Poppins">Poppins</option>
+                        <option value="Montserrat">Montserrat</option>
+                        <option value="Playfair Display">Playfair Display</option>
+                        <option value="Space Grotesk">Space Grotesk</option>
+                        <option value="DM Sans">DM Sans</option>
+                        <option value="Bebas Neue">Bebas Neue</option>
+                        <option value="Caveat">Caveat (el yazısı)</option>
+                        <option value="Roboto Mono">Roboto Mono</option>
+                    </select>
+
+                    <h4>İsim Yanı Emojiler (3D efekti)</h4>
+                    <div class="inline-group">
+                        <input type="text" id="emojiLeft" placeholder="Sol (👑)" maxlength="4">
+                        <input type="text" id="emojiRight" placeholder="Sağ (💎)" maxlength="4">
+                    </div>
+                    <div class="toggle-row"><span>3D Emoji efekti</span><input type="checkbox" id="emoji3d" checked></div>
+
+                    <h4>İsim Efekti Seç</h4>
+                    <div id="nameEffectBtns">
+                        <span class="effect-btn active" data-effect="default">Standart</span>
+                        <span class="effect-btn" data-effect="gold">Altın</span>
+                        <span class="effect-btn" data-effect="neon-red">Neon Kırmızı</span>
+                        <span class="effect-btn" data-effect="neon-blue">Neon Mavi</span>
+                        <span class="effect-btn" data-effect="purple">Mor Gradient</span>
+                        <span class="effect-btn" data-effect="rainbow">Rainbow</span>
+                    </div>
+                    <input type="text" id="nameGradient" placeholder="Özel gradient (CSS)">
+                    <div class="inline-group">
+                        <input type="text" id="nameGlow" placeholder="Glow gölge (CSS)">
+                        <input type="text" id="neonColor" placeholder="Neon rengi">
+                    </div>
+                    <input type="range" id="neonSize" min="2" max="40" value="10">
+                    <div class="range-label"><span>Neon boyutu</span><span id="ns">10px</span></div>
+
+                    <h4>Rozet (Onay İşareti)</h4>
+                    <div class="toggle-row"><span>Rozeti göster</span><input type="checkbox" id="showBadge" checked></div>
+                    <div class="inline-group">
+                        <input type="text" id="badgeIcon" placeholder="Rozet ikon (✓, ★, 🔥)" maxlength="2">
+                        <input type="text" id="badgeColor" placeholder="Rozet rengi">
+                    </div>
+
+                    <h4>Kart Saydamlık & Bulanıklık</h4>
+                    <input type="range" id="cardOpacity" min="20" max="100" value="85">
+                    <div class="range-label"><span>Saydamlık</span><span id="cov">85%</span></div>
+                    <input type="range" id="cardBlur" min="0" max="40" value="20">
+                    <div class="range-label"><span>Blur</span><span id="cbv">20px</span></div>
+
+                    <button class="action" id="saveProfileBtn">💾 Profili Kaydet</button>
+                </div>
+
+                <div class="card">
+                    <h3>🔗 Linkler & Şablonlar</h3>
+                    <h4>Hazır Şablon Ekle</h4>
+                    <div class="template-btns">
+                        <span class="tpl-btn" data-tpl="telegram">📱 Telegram</span>
+                        <span class="tpl-btn" data-tpl="discord">🎮 Discord</span>
+                        <span class="tpl-btn" data-tpl="youtube">▶️ YouTube</span>
+                        <span class="tpl-btn" data-tpl="instagram">📷 Instagram</span>
+                        <span class="tpl-btn" data-tpl="tiktok">🎵 TikTok</span>
+                        <span class="tpl-btn" data-tpl="twitch">📺 Twitch</span>
+                        <span class="tpl-btn" data-tpl="steam">🎯 Steam</span>
+                        <span class="tpl-btn" data-tpl="spotify">🎧 Spotify</span>
+                        <span class="tpl-btn" data-tpl="github">💻 GitHub</span>
+                        <span class="tpl-btn" data-tpl="website">🌐 Website</span>
+                    </div>
+                    <div id="linksList"></div>
+                    <button class="action secondary" id="addLinkBtn">+ Boş Link Ekle</button>
+
+                    <h4>Buton Efektleri</h4>
+                    <div class="toggle-row"><span>Kenar parlaması (Glow)</span><input type="checkbox" id="btnGlow" checked></div>
+                    <div class="toggle-row"><span>Işık kayması (Shimmer)</span><input type="checkbox" id="btnShimmer" checked></div>
+                    <h4>Buton Renkleri</h4>
+                    <div class="inline-group">
+                        <input type="text" id="btnBgColor" placeholder="Arka plan rengi">
+                        <input type="text" id="btnBorderColor" placeholder="Kenar rengi">
+                    </div>
+                    <div class="inline-group">
+                        <input type="text" id="btnHoverColor" placeholder="Hover arka plan">
+                        <input type="text" id="btnHoverBorder" placeholder="Hover kenar">
+                    </div>
+                    <button class="action" id="saveLinksBtn" style="margin-top:10px;">💾 Linkleri & Butonları Kaydet</button>
+                </div>
+
+                <div class="card">
+                    <h3>🎨 Arka Plan</h3>
+                    <input type="text" id="bgColor" placeholder="Renk / Gradient (CSS)">
+                    <input type="text" id="bgImage" placeholder="Resim linki (https://...)">
+                    <h4>Arka Plan Videosu</h4>
+                    <input type="text" id="bgVideo" placeholder="Video linki (mp4, kısa döngü önerilir — örn. 2-3 sn)">
+                    <p style="font-size:11px;color:#666;margin:-4px 0 9px;">Video eklersen sessiz ve otomatik döngüde oynar, resim/rengin yerini alır.</p>
+                    <h4>Partiküller</h4>
+                    <div class="toggle-row"><span>Aktif</span><input type="checkbox" id="particlesToggle" checked></div>
+                    <input type="text" id="particleColor" placeholder="Renk (rgba)">
+                    <input type="range" id="particleCount" min="10" max="150" value="40">
+                    <div class="range-label"><span>Adet</span><span id="pv">40</span></div>
+                    <button class="action" id="saveBackgroundBtn">💾 Arka Planı Kaydet</button>
+                </div>
+
+                <div class="card">
+                    <h3>🎵 Müzik Çalar</h3>
+                    <input type="text" id="musicUrl" placeholder="MP3 linki (https://...)">
+                    <div class="inline-group">
+                        <input type="text" id="musicTitleInput" placeholder="Müzik adı">
+                        <input type="text" id="musicArtist" placeholder="Sanatçı">
+                    </div>
+                    <input type="text" id="musicCover" placeholder="Kapak foto linki">
+                    <div class="toggle-row"><span>Otomatik çal</span><input type="checkbox" id="musicAutoplay" checked></div>
+                    <h4>Müzik Kartı Saydamlık</h4>
+                    <input type="range" id="musicOpacity" min="20" max="100" value="90">
+                    <div class="range-label"><span>Saydamlık</span><span id="mov">90%</span></div>
+                    <input type="range" id="musicBlur" min="0" max="30" value="10">
+                    <div class="range-label"><span>Blur</span><span id="mbv">10px</span></div>
+                    <button class="action" id="saveMusicBtn">💾 Müziği Kaydet</button>
+                </div>
+
+                <div class="card">
+                    <h3>📊 İstatistik & Hesap</h3>
+                    <p style="font-size:18px; margin-bottom:14px;">👁 <strong id="totalViews">0</strong> görüntülenme</p>
+                    <p style="font-size:12px; color:#888; margin-bottom:10px;">Giriş yapılan e-posta: <strong id="accountEmail"></strong> <span id="verifiedTag" style="color:#4ade80;"></span></p>
+                    <button class="action secondary" id="resetPassBtn">🔑 Şifre Sıfırlama E-postası Gönder</button>
+                    <a id="previewLink" href="/" target="_blank" style="display:block;text-align:center;color:#ff4444;font-size:13px;margin-top:12px;text-decoration:none;">🔍 Bio Sayfamı Gör →</a>
+                </div>
+
+                <div class="card">
+                    <h3>🔑 Şifre Değiştir</h3>
+                    <input type="password" id="currentPassInput" placeholder="Mevcut şifren" autocomplete="current-password">
+                    <input type="password" id="newPassInput" placeholder="Yeni şifre (en az 6 karakter)" autocomplete="new-password">
+                    <button class="action secondary" id="changePassBtn">Şifreyi Güncelle</button>
+                </div>
+
+                <div class="card">
+                    <h3>🏷️ Kullanıcı Adını Değiştir</h3>
+                    <p style="font-size:12px;color:#888;margin-bottom:10px;">Mevcut: <strong id="currentUsernameLabel"></strong></p>
+                    <div class="prefix-field-admin" style="display:flex;align-items:center;background:#141414;border:1px solid #2a2a2a;border-radius:10px;overflow:hidden;margin-bottom:4px;">
+                        <span style="padding:11px 2px 11px 11px;color:#666;font-size:13px;" id="usernameHostLabel"></span>
+                        <input type="text" id="newUsernameInput" placeholder="yeniKullaniciAdi" maxlength="20" style="border:none;background:transparent;margin-bottom:0;">
+                    </div>
+                    <div class="hint" id="newUsernameHint" style="font-size:12px;min-height:16px;margin-bottom:9px;"></div>
+                    <button class="action secondary" id="changeUsernameBtn">Kullanıcı Adını Değiştir</button>
+                </div>
+
+                <div class="card danger-zone">
+                    <h3>⚠️ Hesabı Sil</h3>
+                    <p style="font-size:12px; color:#999; margin-bottom:12px;">Bu işlem geri alınamaz. Bio sayfan, tüm ayarların ve kullanıcı adın kalıcı olarak silinir.</p>
+                    <input type="password" id="deletePassInput" placeholder="Onaylamak için şifreni gir" autocomplete="current-password">
+                    <button class="action danger" id="deleteAccountBtn">Hesabımı Kalıcı Olarak Sil</button>
+                </div>
+                <p style="text-align:center;color:#333;font-size:11px;padding-bottom:30px;">Bio Panelim</p>
+            </div>
+
+            <div class="previewPane" id="previewPane">
+                <iframe id="previewFrame" src="/preview.html" title="Canlı önizleme"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNnqSKYVW_JMc4CO5KoNQb4ctrMdIMS6s",
+            authDomain: "rolex-bio.firebaseapp.com",
+            projectId: "rolex-bio",
+            storageBucket: "rolex-bio.firebasestorage.app",
+            messagingSenderId: "182739949955",
+            appId: "1:182739949955:web:bd859e25ceee8936273eb6"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let uid = null;
+        let username = '';
+        let currentLinks = [];
+        let previewReady = false;
+        let pendingPreview = null;
+
+        const EFFECTS = {
+            'default': { gradient: 'linear-gradient(135deg, #ffffff, #cccccc)', glow: 'none', neon: false },
+            'gold': { gradient: 'linear-gradient(135deg, #ffd700, #ffaa00, #ffd700)', glow: '0 0 15px rgba(255,200,0,0.6)', neon: false },
+            'neon-red': { gradient: 'linear-gradient(135deg, #fff, #fff)', glow: 'none', neon: true, neonColor: '#ff0000', neonSize: 10 },
+            'neon-blue': { gradient: 'linear-gradient(135deg, #fff, #fff)', glow: 'none', neon: true, neonColor: '#00aaff', neonSize: 10 },
+            'purple': { gradient: 'linear-gradient(135deg, #c084fc, #7c3aed)', glow: '0 0 20px rgba(168,85,247,0.5)', neon: false },
+            'rainbow': { gradient: 'linear-gradient(135deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff)', glow: '0 0 15px rgba(255,255,255,0.4)', neon: false }
+        };
+        let selectedEffect = 'default';
+
+        const TEMPLATES = {
+            'telegram': { icon: '📱', title: 'Telegram', url: 'https://t.me/kullaniciadi' },
+            'discord': { icon: '🎮', title: 'Discord', url: 'https://discord.gg/sunucu' },
+            'youtube': { icon: '▶️', title: 'YouTube', url: 'https://youtube.com/@kanal' },
+            'instagram': { icon: '📷', title: 'Instagram', url: 'https://instagram.com/kullaniciadi' },
+            'tiktok': { icon: '🎵', title: 'TikTok', url: 'https://tiktok.com/@kullaniciadi' },
+            'twitch': { icon: '📺', title: 'Twitch', url: 'https://twitch.tv/kullaniciadi' },
+            'steam': { icon: '🎯', title: 'Steam', url: 'https://steamcommunity.com/id/kullaniciadi' },
+            'spotify': { icon: '🎧', title: 'Spotify', url: 'https://open.spotify.com/user/kullaniciadi' },
+            'github': { icon: '💻', title: 'GitHub', url: 'https://github.com/kullaniciadi' },
+            'website': { icon: '🌐', title: 'Website', url: 'https://' }
+        };
+
+        auth.onAuthStateChanged(user => {
+            if (!user) { window.location.href = '/login.html'; return; }
+            uid = user.uid;
+            document.getElementById('accountEmail').textContent = user.email || '';
+            updateVerifyUI(user);
+            loadData();
+        });
+
+        function updateVerifyUI(user) {
+            const banner = document.getElementById('verifyBanner');
+            const tag = document.getElementById('verifiedTag');
+            if (user.emailVerified) {
+                banner.classList.add('hidden');
+                tag.textContent = '✓ doğrulanmış';
+                // Herkese açık profildeki doğrulanmış rozetini de senkron tut
+                db.collection('users').doc(uid).get().then(doc => {
+                    if (doc.exists && doc.data().emailVerified !== true) {
+                        db.collection('users').doc(uid).set({ emailVerified: true }, { merge: true }).then(pushPreview);
+                    }
+                });
+            } else {
+                banner.classList.remove('hidden');
+                tag.textContent = '';
+            }
+        }
+
+        let resendCooldown = false;
+        document.getElementById('resendVerifyBtn').addEventListener('click', async () => {
+            if (resendCooldown) return;
+            const btn = document.getElementById('resendVerifyBtn');
+            try {
+                await auth.currentUser.sendEmailVerification();
+                msg('Doğrulama e-postası tekrar gönderildi.', 'success');
+                resendCooldown = true; btn.disabled = true;
+                setTimeout(() => { resendCooldown = false; btn.disabled = false; }, 60000);
+            } catch (err) {
+                msg('Gönderilemedi (' + (err.code || err.message) + '). Firebase Console\'da e-posta gönderim kotası dolmuş olabilir, biraz sonra tekrar dene.', 'error');
+            }
+        });
+
+        document.getElementById('checkVerifyBtn').addEventListener('click', async () => {
+            await auth.currentUser.reload();
+            updateVerifyUI(auth.currentUser);
+            if (auth.currentUser.emailVerified) msg('E-posta doğrulandı! 🎉', 'success');
+            else msg('Henüz doğrulanmamış görünüyor. E-postanı kontrol et.', 'error');
+        });
+
+        async function reauthenticate(password) {
+            const cred = firebase.auth.EmailAuthProvider.credential(auth.currentUser.email, password);
+            await auth.currentUser.reauthenticateWithCredential(cred);
+        }
+
+        document.getElementById('changePassBtn').addEventListener('click', async () => {
+            const current = document.getElementById('currentPassInput').value;
+            const next = document.getElementById('newPassInput').value;
+            if (!current || next.length < 6) { msg('Mevcut şifreni gir ve en az 6 karakterlik yeni şifre seç.', 'error'); return; }
+            try {
+                await reauthenticate(current);
+                await auth.currentUser.updatePassword(next);
+                document.getElementById('currentPassInput').value = '';
+                document.getElementById('newPassInput').value = '';
+                msg('Şifren güncellendi!', 'success');
+            } catch (err) {
+                msg((err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') ? 'Mevcut şifre yanlış.' : 'Şifre güncellenemedi (' + (err.code || err.message) + ').', 'error');
+            }
+        });
+
+        const RESERVED_USERNAMES = ['admin','login','register','index','api','www','app','static','assets',
+            'favicon.ico','null','undefined','profile','preview','discover','render.js','profile.css','firestore.rules'];
+
+        const newUsernameInput = document.getElementById('newUsernameInput');
+        const newUsernameHint = document.getElementById('newUsernameHint');
+        let newUsernameValid = false;
+        let usernameCheckTimer = null;
+
+        newUsernameInput.addEventListener('input', () => {
+            newUsernameInput.value = newUsernameInput.value.replace(/[^a-zA-Z0-9_]/g, '');
+            newUsernameValid = false;
+            clearTimeout(usernameCheckTimer);
+            const v = newUsernameInput.value.trim();
+            if (!v) { newUsernameHint.textContent = ''; newUsernameHint.className = 'hint'; return; }
+            if (v.length < 3) { newUsernameHint.textContent = 'En az 3 karakter (harf, rakam, _)'; newUsernameHint.className = 'hint'; return; }
+            if (v.toLowerCase() === username.toLowerCase()) { newUsernameHint.textContent = 'Bu zaten mevcut kullanıcı adın'; newUsernameHint.className = 'hint bad'; return; }
+            if (RESERVED_USERNAMES.includes(v.toLowerCase())) { newUsernameHint.textContent = 'Bu kullanıcı adı ayrılmış'; newUsernameHint.className = 'hint bad'; return; }
+            newUsernameHint.textContent = 'Kontrol ediliyor...'; newUsernameHint.className = 'hint checking';
+            usernameCheckTimer = setTimeout(() => {
+                db.collection('usernames').doc(v.toLowerCase()).get().then(doc => {
+                    if (doc.exists) { newUsernameHint.textContent = '❌ Bu kullanıcı adı alınmış'; newUsernameHint.className = 'hint bad'; newUsernameValid = false; }
+                    else { newUsernameHint.textContent = '✓ ' + v + ' kullanılabilir'; newUsernameHint.className = 'hint ok'; newUsernameValid = true; }
+                }).catch(() => { newUsernameHint.textContent = ''; });
+            }, 450);
+        });
+
+        document.getElementById('changeUsernameBtn').addEventListener('click', async () => {
+            const newUsername = newUsernameInput.value.trim();
+            const newLower = newUsername.toLowerCase();
+            if (newUsername.length < 3 || RESERVED_USERNAMES.includes(newLower) || newLower === username.toLowerCase()) {
+                msg('Geçerli, farklı bir kullanıcı adı gir.', 'error'); return;
+            }
+            const btn = document.getElementById('changeUsernameBtn');
+            btn.disabled = true;
+            const oldLower = username.toLowerCase();
+            try {
+                await db.runTransaction(async (tx) => {
+                    const newRef = db.collection('usernames').doc(newLower);
+                    const newSnap = await tx.get(newRef);
+                    if (newSnap.exists) throw new Error('taken');
+                    // Yeni kaydı önce oluştur — kullanıcı belgesi güncellemesi bunun
+                    // var olmasını şart koşuyor (bkz. firestore.rules)
+                    tx.set(newRef, { uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    tx.update(db.collection('users').doc(uid), { username: newUsername, usernameLower: newLower });
+                    tx.delete(db.collection('usernames').doc(oldLower));
+                });
+                username = newUsername;
+                document.getElementById('urlChip').textContent = window.location.host + '/' + username;
+                document.getElementById('previewLink').href = '/' + username;
+                document.getElementById('currentUsernameLabel').textContent = '@' + username;
+                newUsernameInput.value = ''; newUsernameHint.textContent = '';
+                msg('Kullanıcı adın güncellendi!', 'success');
+            } catch (err) {
+                msg(err.message === 'taken' ? 'Bu kullanıcı adı az önce alındı.' : 'Değiştirilemedi (' + (err.code || err.message) + ').', 'error');
+            }
+            btn.disabled = false;
+        });
+
+        document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+            const password = document.getElementById('deletePassInput').value;
+            if (!password) { msg('Onaylamak için şifreni gir.', 'error'); return; }
+            if (!confirm('Hesabını ve bio sayfanı KALICI olarak silmek istediğine emin misin? Bu işlem geri alınamaz.')) return;
+            const btn = document.getElementById('deleteAccountBtn');
+            btn.disabled = true;
+            try {
+                await reauthenticate(password);
+                const batch = db.batch();
+                batch.delete(db.collection('usernames').doc(username.toLowerCase()));
+                batch.delete(db.collection('users').doc(uid).collection('private').doc('data'));
+                batch.delete(db.collection('users').doc(uid));
+                await batch.commit();
+                await auth.currentUser.delete();
+                window.location.href = '/';
+            } catch (err) {
+                msg((err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') ? 'Şifre yanlış.' : 'Silme işlemi başarısız oldu (' + (err.code || err.message) + ').', 'error');
+                btn.disabled = false;
+            }
+        });
+
+        function msg(t, ty) {
+            const m = document.getElementById('message');
+            m.textContent = t; m.className = 'message ' + ty; m.style.display = 'block';
+            setTimeout(() => m.style.display = 'none', 2500);
+        }
+
+        function loadData() {
+            db.collection('users').doc(uid).get().then(doc => {
+                if (!doc.exists) {
+                    document.getElementById('gate').textContent = 'Profil bulunamadı. Bu hesap kayıt akışını tamamlamamış olabilir — çıkış yapıp tekrar kayıt olmayı dene, sorun devam ederse Firestore kurallarının yayınlandığından emin ol.';
+                    return;
+                }
+                const d = doc.data();
+                username = d.username || '';
+                document.getElementById('urlChip').textContent = window.location.host + '/' + username;
+                document.getElementById('previewLink').href = '/' + username;
+                document.getElementById('currentUsernameLabel').textContent = '@' + username;
+                document.getElementById('usernameHostLabel').textContent = window.location.host + '/';
+
+                document.getElementById('nameInput').value = d.name || '';
+                document.getElementById('bioInput').value = d.bio || '';
+                document.getElementById('avatarInput').value = d.avatar || '';
+                document.getElementById('fontFamily').value = d.fontFamily || '';
+                document.getElementById('emojiLeft').value = d.emojiLeft || '';
+                document.getElementById('emojiRight').value = d.emojiRight || '';
+                document.getElementById('emoji3d').checked = d.emoji3d !== false;
+                document.getElementById('nameGradient').value = d.nameGradient || '';
+                document.getElementById('nameGlow').value = d.nameGlow || '';
+                document.getElementById('neonColor').value = d.neonColor || '';
+                document.getElementById('neonSize').value = d.neonSize || 10;
+                document.getElementById('ns').textContent = (d.neonSize || 10) + 'px';
+                document.getElementById('showBadge').checked = d.showBadge !== false;
+                document.getElementById('badgeIcon').value = d.badgeIcon || '✓';
+                document.getElementById('badgeColor').value = d.badgeColor || '';
+                document.getElementById('cardOpacity').value = (d.cardOpacity != null ? d.cardOpacity : 0.85) * 100;
+                document.getElementById('cov').textContent = Math.round((d.cardOpacity != null ? d.cardOpacity : 0.85) * 100) + '%';
+                document.getElementById('cardBlur').value = d.cardBlur != null ? d.cardBlur : 20;
+                document.getElementById('cbv').textContent = (d.cardBlur != null ? d.cardBlur : 20) + 'px';
+                document.getElementById('bgColor').value = d.bgColor || '';
+                document.getElementById('bgImage').value = d.bgImage || '';
+                document.getElementById('bgVideo').value = d.bgVideo || '';
+                document.getElementById('particlesToggle').checked = d.particles !== false;
+                document.getElementById('particleColor').value = d.particleColor || '';
+                document.getElementById('particleCount').value = d.particleCount || 40;
+                document.getElementById('pv').textContent = d.particleCount || 40;
+                document.getElementById('btnGlow').checked = d.btnGlow !== false;
+                document.getElementById('btnShimmer').checked = d.btnShimmer !== false;
+                document.getElementById('btnBgColor').value = d.btnBgColor || '';
+                document.getElementById('btnBorderColor').value = d.btnBorderColor || '';
+                document.getElementById('btnHoverColor').value = d.btnHoverColor || '';
+                document.getElementById('btnHoverBorder').value = d.btnHoverBorder || '';
+                document.getElementById('musicUrl').value = d.musicUrl || '';
+                document.getElementById('musicTitleInput').value = d.musicTitle || '';
+                document.getElementById('musicArtist').value = d.musicArtist || '';
+                document.getElementById('musicCover').value = d.musicCover || '';
+                document.getElementById('musicAutoplay').checked = d.musicAutoplay !== false;
+                document.getElementById('musicOpacity').value = (d.musicOpacity != null ? d.musicOpacity : 0.9) * 100;
+                document.getElementById('mov').textContent = Math.round((d.musicOpacity != null ? d.musicOpacity : 0.9) * 100) + '%';
+                document.getElementById('musicBlur').value = d.musicBlur != null ? d.musicBlur : 10;
+                document.getElementById('mbv').textContent = (d.musicBlur != null ? d.musicBlur : 10) + 'px';
+                document.getElementById('totalViews').textContent = d.views || 0;
+                currentLinks = d.links || [];
+                renderLinks();
+
+                document.getElementById('gate').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                pushPreview();
+            }).catch(err => {
+                document.getElementById('gate').textContent = 'Profil yüklenemedi (' + (err.code || err.message) + '). Firestore kurallarının Firebase Console\'a doğru yapıştırılıp yayınlandığından emin ol.';
+            });
+        }
+
+        function collectFormData() {
+            const ef = EFFECTS[selectedEffect];
+            return {
+                name: document.getElementById('nameInput').value,
+                bio: document.getElementById('bioInput').value,
+                avatar: document.getElementById('avatarInput').value,
+                fontFamily: document.getElementById('fontFamily').value,
+                emojiLeft: document.getElementById('emojiLeft').value,
+                emojiRight: document.getElementById('emojiRight').value,
+                emoji3d: document.getElementById('emoji3d').checked,
+                nameGradient: document.getElementById('nameGradient').value || ef.gradient,
+                nameGlow: document.getElementById('nameGlow').value || ef.glow,
+                nameNeon: ef.neon,
+                neonColor: document.getElementById('neonColor').value || ef.neonColor,
+                neonSize: parseInt(document.getElementById('neonSize').value),
+                showBadge: document.getElementById('showBadge').checked,
+                badgeIcon: document.getElementById('badgeIcon').value,
+                badgeColor: document.getElementById('badgeColor').value,
+                cardOpacity: parseInt(document.getElementById('cardOpacity').value) / 100,
+                cardBlur: parseInt(document.getElementById('cardBlur').value),
+                bgColor: document.getElementById('bgColor').value,
+                bgImage: document.getElementById('bgImage').value,
+                bgVideo: document.getElementById('bgVideo').value,
+                particles: document.getElementById('particlesToggle').checked,
+                particleColor: document.getElementById('particleColor').value,
+                particleCount: parseInt(document.getElementById('particleCount').value),
+                links: currentLinks,
+                btnGlow: document.getElementById('btnGlow').checked,
+                btnShimmer: document.getElementById('btnShimmer').checked,
+                btnBgColor: document.getElementById('btnBgColor').value,
+                btnBorderColor: document.getElementById('btnBorderColor').value,
+                btnHoverColor: document.getElementById('btnHoverColor').value,
+                btnHoverBorder: document.getElementById('btnHoverBorder').value,
+                musicUrl: document.getElementById('musicUrl').value,
+                musicTitle: document.getElementById('musicTitleInput').value,
+                musicArtist: document.getElementById('musicArtist').value,
+                musicCover: document.getElementById('musicCover').value,
+                musicAutoplay: document.getElementById('musicAutoplay').checked,
+                musicOpacity: parseInt(document.getElementById('musicOpacity').value) / 100,
+                musicBlur: parseInt(document.getElementById('musicBlur').value)
+            };
+        }
+
+        let pushTimer = null;
+        function pushPreview() {
+            clearTimeout(pushTimer);
+            pushTimer = setTimeout(() => {
+                const payload = collectFormData();
+                const frame = document.getElementById('previewFrame');
+                if (previewReady) frame.contentWindow.postMessage({ type: 'profile-preview', payload }, '*');
+                else pendingPreview = payload;
+            }, 120);
+        }
+        window.addEventListener('message', (ev) => {
+            if (ev.data && ev.data.type === 'preview-ready') {
+                previewReady = true;
+                if (pendingPreview) document.getElementById('previewFrame').contentWindow.postMessage({ type: 'profile-preview', payload: pendingPreview }, '*');
+            }
+        });
+
+        document.getElementById('editPane').addEventListener('input', pushPreview);
+        document.getElementById('editPane').addEventListener('change', pushPreview);
+
+        function renderLinks() {
+            const c = document.getElementById('linksList');
+            c.innerHTML = '';
+            currentLinks.forEach((l, i) => {
+                const row = document.createElement('div');
+                row.className = 'link-item';
+                const iconInput = document.createElement('input');
+                iconInput.type = 'text'; iconInput.placeholder = 'İkon'; iconInput.style.width = '45px'; iconInput.value = l.icon || '🔗';
+                iconInput.oninput = () => { currentLinks[i].icon = iconInput.value; pushPreview(); };
+                const titleInput = document.createElement('input');
+                titleInput.type = 'text'; titleInput.placeholder = 'Başlık'; titleInput.value = l.title || '';
+                titleInput.oninput = () => { currentLinks[i].title = titleInput.value; pushPreview(); };
+                const urlInput = document.createElement('input');
+                urlInput.type = 'text'; urlInput.placeholder = 'URL'; urlInput.value = l.url || '';
+                urlInput.oninput = () => { currentLinks[i].url = urlInput.value; pushPreview(); };
+                const delBtn = document.createElement('button');
+                delBtn.className = 'danger'; delBtn.textContent = '✕';
+                delBtn.onclick = () => { currentLinks.splice(i, 1); renderLinks(); pushPreview(); };
+                row.append(iconInput, titleInput, urlInput, delBtn);
+                c.appendChild(row);
+            });
+        }
+
+        document.getElementById('addLinkBtn').addEventListener('click', () => {
+            currentLinks.push({ icon: '🔗', title: 'Yeni Link', url: 'https://' });
+            renderLinks(); pushPreview();
+        });
+
+        function saveFields(fields, okText) {
+            db.collection('users').doc(uid).set(fields, { merge: true })
+                .then(() => msg(okText, 'success'))
+                .catch(err => msg('Kaydedilemedi (' + (err.code || err.message) + '). Firestore kurallarının doğru yayınlandığından emin ol.', 'error'));
+        }
+
+        document.getElementById('saveProfileBtn').addEventListener('click', () => {
+            const d = collectFormData();
+            saveFields({
+                name: d.name, bio: d.bio, avatar: d.avatar, fontFamily: d.fontFamily, emojiLeft: d.emojiLeft, emojiRight: d.emojiRight,
+                emoji3d: d.emoji3d, nameGradient: d.nameGradient, nameGlow: d.nameGlow, nameNeon: d.nameNeon,
+                neonColor: d.neonColor, neonSize: d.neonSize, showBadge: d.showBadge, badgeIcon: d.badgeIcon,
+                badgeColor: d.badgeColor, cardOpacity: d.cardOpacity, cardBlur: d.cardBlur
+            }, 'Profil kaydedildi!');
+        });
+
+        document.getElementById('saveLinksBtn').addEventListener('click', () => {
+            const d = collectFormData();
+            saveFields({
+                links: currentLinks, btnGlow: d.btnGlow, btnShimmer: d.btnShimmer, btnBgColor: d.btnBgColor,
+                btnBorderColor: d.btnBorderColor, btnHoverColor: d.btnHoverColor, btnHoverBorder: d.btnHoverBorder
+            }, 'Linkler kaydedildi!');
+        });
+
+        document.getElementById('saveBackgroundBtn').addEventListener('click', () => {
+            const d = collectFormData();
+            saveFields({
+                bgColor: d.bgColor, bgImage: d.bgImage, bgVideo: d.bgVideo, particles: d.particles,
+                particleColor: d.particleColor, particleCount: d.particleCount
+            }, 'Arka plan kaydedildi!');
+        });
+
+        document.getElementById('saveMusicBtn').addEventListener('click', () => {
+            const d = collectFormData();
+            saveFields({
+                musicUrl: d.musicUrl, musicTitle: d.musicTitle, musicArtist: d.musicArtist, musicCover: d.musicCover,
+                musicAutoplay: d.musicAutoplay, musicOpacity: d.musicOpacity, musicBlur: d.musicBlur
+            }, 'Müzik kaydedildi!');
+        });
+
+        document.getElementById('urlChip').addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.origin + '/' + username).then(() => msg('Link kopyalandı!', 'success'));
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut().then(() => window.location.href = '/login.html'));
+
+        document.getElementById('resetPassBtn').addEventListener('click', () => {
+            const email = auth.currentUser && auth.currentUser.email;
+            if (!email) return;
+            auth.sendPasswordResetEmail(email)
+                .then(() => msg('Şifre sıfırlama e-postası gönderildi.', 'success'))
+                .catch(err => msg('Gönderilemedi (' + (err.code || err.message) + ').', 'error'));
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('effect-btn')) {
+                document.querySelectorAll('.effect-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                selectedEffect = e.target.dataset.effect;
+                pushPreview();
+            }
+            if (e.target.classList.contains('tpl-btn')) {
+                const tpl = TEMPLATES[e.target.dataset.tpl];
+                if (tpl) { currentLinks.push(Object.assign({}, tpl)); renderLinks(); pushPreview(); }
+            }
+        });
+
+        document.getElementById('cardOpacity').addEventListener('input', function() { document.getElementById('cov').textContent = this.value + '%'; });
+        document.getElementById('cardBlur').addEventListener('input', function() { document.getElementById('cbv').textContent = this.value + 'px'; });
+        document.getElementById('particleCount').addEventListener('input', function() { document.getElementById('pv').textContent = this.value; });
+        document.getElementById('neonSize').addEventListener('input', function() { document.getElementById('ns').textContent = this.value + 'px'; });
+        document.getElementById('musicOpacity').addEventListener('input', function() { document.getElementById('mov').textContent = this.value + '%'; });
+        document.getElementById('musicBlur').addEventListener('input', function() { document.getElementById('mbv').textContent = this.value + 'px'; });
+
+        // Mobil sekmeler
+        const tabEdit = document.getElementById('tabEdit');
+        const tabPreview = document.getElementById('tabPreview');
+        const editPane = document.getElementById('editPane');
+        const previewPane = document.getElementById('previewPane');
+        tabEdit.addEventListener('click', () => {
+            tabEdit.classList.add('active'); tabPreview.classList.remove('active');
+            editPane.classList.remove('tab-hidden'); previewPane.classList.add('tab-hidden');
+        });
+        tabPreview.addEventListener('click', () => {
+            tabPreview.classList.add('active'); tabEdit.classList.remove('active');
+            previewPane.classList.remove('tab-hidden'); editPane.classList.add('tab-hidden');
+            pushPreview();
+        });
+        if (window.innerWidth <= 900) previewPane.classList.add('tab-hidden');
+    </script>
+</body>
+</html>

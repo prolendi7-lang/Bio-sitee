@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Önizleme</title>
+    <link rel="stylesheet" href="/profile.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@600;700&family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=Bebas+Neue&family=Caveat:wght@600&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>body { padding: 30px 16px; }</style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <video class="bg-video hidden" id="bgVideo" autoplay muted loop playsinline></video>
+    <div class="container">
+        <div class="profile-card" id="profileCard">
+            <div class="avatar-container">
+                <img class="avatar" id="avatar" src="https://i.imgur.com/6VBx3io.png" alt="Avatar">
+                <div class="badge" id="badge">✓</div>
+            </div>
+            <div class="name-container">
+                <span class="name-emoji" id="nameEmojiLeft"></span>
+                <h1 class="name" id="nameDisplay">İsimsiz</h1>
+                <span class="name-emoji" id="nameEmojiRight"></span>
+            </div>
+            <p class="bio-text" id="bioDisplay"></p>
+            <div class="verified-label hidden" id="verifiedLabel">✓ Doğrulanmış hesap</div>
+            <div class="links" id="linksContainer"></div>
+            <div class="view-count">👁 <span id="viewCount">0</span></div>
+        </div>
+        <div class="music-player hidden" id="musicPlayer">
+            <img class="music-cover" id="musicCover" src="https://i.imgur.com/6VBx3io.png" alt="cover">
+            <div class="music-info">
+                <div class="music-title" id="musicTitle">Müzik</div>
+                <div class="music-artist" id="musicArtist">Sanatçı</div>
+            </div>
+            <button class="music-btn" id="playBtn" onclick="togglePlay()">▶</button>
+        </div>
+    </div>
+    <audio id="bgMusic" loop style="display:none;"></audio>
+
+    <script src="/render.js"></script>
+    <script>
+        // Admin panelinden postMessage ile gelen veriyi anlık olarak uygular.
+        // Müzik önizlemede otomatik çalmaz (kullanıcı deneyimini bozmasın diye).
+        window.addEventListener('message', (ev) => {
+            if (!ev.data || ev.data.type !== 'profile-preview') return;
+            const d = Object.assign({}, ev.data.payload, { musicAutoplay: false });
+            applyProfileData(d);
+        });
+        window.parent.postMessage({ type: 'preview-ready' }, '*');
+    </script>
+</body>
+</html>

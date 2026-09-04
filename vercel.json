@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/((?!admin.html|login.html|register.html|preview.html|discover.html|render.js|profile.css|favicon.ico).*)", "destination": "/index.html" }
+  ]
+}
