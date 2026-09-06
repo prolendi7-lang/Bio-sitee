@@ -6,41 +6,113 @@
     <title>Bio</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <link rel="stylesheet" href="/profile.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@600;700&family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=Bebas+Neue&family=Caveat:wght@600&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@600;700&family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@400;600;700&family=Bebas+Neue&family=Caveat:wght@600&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/profile.css">
     <style>
-        .landing { position: relative; z-index: 1; max-width: 420px; width: 100%; text-align: center; }
-        .landing h1 { font-size: 30px; margin-bottom: 10px; }
-        .landing p { color: #aaa; font-size: 14px; margin-bottom: 28px; line-height: 1.6; }
-        .landing .actions { display: flex; flex-direction: column; gap: 12px; }
-        .landing .btn {
-            padding: 14px 20px; border-radius: 14px; text-decoration: none; color: #fff; font-weight: 600;
-            border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); transition: all .2s;
+        /* Landing sayfası stilleri */
+        .landing {
+            position: relative;
+            z-index: 1;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
         }
-        .landing .btn:hover { transform: translateY(-2px); }
-        .landing .btn.primary { background: linear-gradient(135deg, #ff3b3b, #cc0000); border-color: transparent; }
-        .landing .taken { margin-top: 22px; font-size: 12px; color: #666; }
-        .spinner { width: 34px; height: 34px; border: 3px solid rgba(255,255,255,0.15); border-top-color: #fff; border-radius: 50%; animation: sp 0.8s linear infinite; margin: 0 auto; }
-        @keyframes sp { to { transform: rotate(360deg); } }
+        .landing h1 {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+        .landing p {
+            color: #6B7280;
+            font-size: 14px;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+        .landing .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .landing .btn {
+            padding: 14px 20px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: #F9FAFB;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            transition: all 0.2s;
+        }
+        .landing .btn:hover {
+            transform: translateY(-2px);
+        }
+        .landing .btn.primary {
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            border-color: transparent;
+        }
+        .landing .btn.primary:hover {
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+        }
+        .landing .btn.secondary {
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        .landing .btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .spinner {
+            width: 34px;
+            height: 34px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #3B82F6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .hidden {
+            display: none !important;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        .bg-video.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="particles" id="particles"></div>
     <video class="bg-video hidden" id="bgVideo" autoplay muted loop playsinline></video>
-    <video class="bg-video hidden" id="bgVideo" muted loop autoplay playsinline></video>
 
+    <!-- LANDING VIEW -->
     <div class="landing hidden" id="landingView">
-        <h1>Bio Sayfan Burada 👋</h1>
+        <h1>🚀 Bio Sayfan Burada</h1>
         <p>Kendi bio sayfanı oluştur, linklerini topla, tarzını yansıt — saniyeler içinde.<br><br><strong id="hostPreview"></strong>/<em>kullaniciadin</em></p>
         <div class="actions">
-            <a class="btn primary" href="/register.html">Ücretsiz Kayıt Ol</a>
-            <a class="btn" href="/login.html">Giriş Yap</a>
-            <a class="btn" href="/discover.html">🔎 Keşfet</a>
+            <a class="btn primary" href="/login.html">Ücretsiz Kayıt Ol</a>
+            <a class="btn secondary" href="/login.html">Giriş Yap</a>
+            <a class="btn secondary" href="/discover.html">🔎 Keşfet</a>
         </div>
     </div>
 
+    <!-- PROFILE VIEW -->
     <div class="container hidden" id="profileView">
         <div class="profile-card" id="profileCard">
             <div class="avatar-container">
@@ -67,23 +139,26 @@
         </div>
     </div>
 
-    <div class="container hidden" id="notFoundView">
-        <div class="landing">
-            <h1>😕 Kullanıcı bulunamadı</h1>
-            <p><strong id="missingUser"></strong> adında bir bio sayfası yok.</p>
-            <div class="actions">
-                <a class="btn primary" href="/register.html">Bu kullanıcı adını sen al</a>
-                <a class="btn" href="/">Ana sayfaya dön</a>
-            </div>
+    <!-- NOT FOUND VIEW -->
+    <div class="landing hidden" id="notFoundView">
+        <h1>😕 Kullanıcı bulunamadı</h1>
+        <p><strong id="missingUser"></strong> adında bir bio sayfası yok.</p>
+        <div class="actions">
+            <a class="btn primary" href="/login.html">Bu kullanıcı adını sen al</a>
+            <a class="btn secondary" href="/">Ana sayfaya dön</a>
         </div>
     </div>
 
+    <!-- LOADING VIEW -->
     <div class="landing hidden" id="loadingView"><div class="spinner"></div></div>
 
     <audio id="bgMusic" loop style="display:none;"></audio>
 
     <script src="/render.js"></script>
     <script>
+        // ============================================================
+        // FIREBASE
+        // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDNnqSKYVW_JMc4CO5KoNQb4ctrMdIMS6s",
             authDomain: "rolex-bio.firebaseapp.com",
@@ -95,55 +170,106 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        function show(id) {
-            ['landingView','profileView','notFoundView','loadingView'].forEach(x => {
+        // ============================================================
+        // HELPERS
+        // ============================================================
+        function showView(id) {
+            ['landingView', 'profileView', 'notFoundView', 'loadingView'].forEach(x => {
                 document.getElementById(x).classList.toggle('hidden', x !== id);
             });
         }
 
-        function renderParticles(count, color) {
-            const pc = document.getElementById('particles');
-            pc.innerHTML = '';
-            for (let i = 0; i < count; i++) {
-                const p = document.createElement('div');
-                p.classList.add('particle');
-                p.style.left = Math.random() * 100 + '%';
-                p.style.animationDuration = (Math.random() * 10 + 5) + 's';
-                p.style.animationDelay = Math.random() * 5 + 's';
-                p.style.background = color;
-                pc.appendChild(p);
-            }
-        }
-
+        // ============================================================
+        // ROUTING
+        // ============================================================
         const raw = decodeURIComponent(window.location.pathname.replace(/^\/+|\/+$/g, ''));
 
         if (!raw) {
+            // Ana sayfa
             document.getElementById('hostPreview').textContent = window.location.host;
-            renderParticles(40, 'rgba(255,255,255,0.5)');
-            show('landingView');
+            showView('landingView');
         } else {
+            // Profil sayfası
             const usernameLower = raw.toLowerCase();
-            show('loadingView');
+            showView('loadingView');
+
+            // SEO: Başlığı güncelle
+            document.title = '@' + raw + ' | Bio';
+
             db.collection('usernames').doc(usernameLower).get().then(unameDoc => {
                 if (!unameDoc.exists) {
                     document.getElementById('missingUser').textContent = '@' + raw;
-                    show('notFoundView');
+                    showView('notFoundView');
                     return;
                 }
                 const uid = unameDoc.data().uid;
                 const userRef = db.collection('users').doc(uid);
 
-                // Görüntülenme sayacı — sadece "views" alanını 1 artırır (bkz. firestore.rules)
-                userRef.update({ views: firebase.firestore.FieldValue.increment(1) }).catch(err => console.error('Görüntülenme sayacı güncellenemedi:', err));
+                // Görüntülenme sayacı
+                userRef.update({ views: firebase.firestore.FieldValue.increment(1) }).catch(() => {});
 
                 userRef.onSnapshot(doc => {
-                    if (!doc.exists) { show('notFoundView'); return; }
+                    if (!doc.exists) { showView('notFoundView'); return; }
                     const d = doc.data();
+
+                    // SEO: Meta etiketlerini güncelle
+                    const name = d.name || d.username || raw;
+                    document.title = name + ' | Bio';
+                    const avatar = d.avatar || 'https://i.imgur.com/6VBx3io.png';
+                    updateMetaTags(name, avatar, d.bio || '');
+
                     applyProfileData(d);
                     document.getElementById('viewCount').textContent = d.views || 0;
-                    show('profileView');
-                }, err => { console.error('Profil dinlenemedi:', err); show('notFoundView'); });
-            }).catch(err => { console.error('Kullanıcı adı sorgusu başarısız:', err); show('notFoundView'); });
+                    showView('profileView');
+                }, err => {
+                    console.error('Profil dinlenemedi:', err);
+                    showView('notFoundView');
+                });
+            }).catch(err => {
+                console.error('Kullanıcı adı sorgusu başarısız:', err);
+                showView('notFoundView');
+            });
+        }
+
+        // ============================================================
+        // SEO META TAGS
+        // ============================================================
+        function updateMetaTags(name, imageUrl, description) {
+            // title zaten güncellendi
+
+            // Open Graph
+            let ogTitle = document.querySelector('meta[property="og:title"]');
+            if (!ogTitle) {
+                ogTitle = document.createElement('meta');
+                ogTitle.setAttribute('property', 'og:title');
+                document.head.appendChild(ogTitle);
+            }
+            ogTitle.setAttribute('content', name + ' | Bio');
+
+            let ogImage = document.querySelector('meta[property="og:image"]');
+            if (!ogImage) {
+                ogImage = document.createElement('meta');
+                ogImage.setAttribute('property', 'og:image');
+                document.head.appendChild(ogImage);
+            }
+            ogImage.setAttribute('content', imageUrl);
+
+            let ogDesc = document.querySelector('meta[property="og:description"]');
+            if (!ogDesc) {
+                ogDesc = document.createElement('meta');
+                ogDesc.setAttribute('property', 'og:description');
+                document.head.appendChild(ogDesc);
+            }
+            ogDesc.setAttribute('content', description || name + ' adlı kullanıcının bio sayfası.');
+
+            // Twitter Card
+            let twCard = document.querySelector('meta[name="twitter:card"]');
+            if (!twCard) {
+                twCard = document.createElement('meta');
+                twCard.setAttribute('name', 'twitter:card');
+                document.head.appendChild(twCard);
+            }
+            twCard.setAttribute('content', 'summary_large_image');
         }
     </script>
 </body>
