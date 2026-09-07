@@ -470,50 +470,6 @@
         .preset-btn.neon:hover {
             background: rgba(16, 185, 129, 0.15);
         }
-        .file-upload-wrapper {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .file-upload-wrapper input[type="file"] {
-            flex: 1;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px dashed rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
-            color: #9CA3AF;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .file-upload-wrapper input[type="file"]::-webkit-file-upload-button {
-            background: rgba(59, 130, 246, 0.2);
-            border: none;
-            border-radius: 6px;
-            color: #fff;
-            padding: 6px 12px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        .file-upload-wrapper input[type="file"]::-webkit-file-upload-button:hover {
-            background: rgba(59, 130, 246, 0.4);
-        }
-        .upload-status {
-            font-size: 11px;
-            color: #6B7280;
-            min-width: 60px;
-            text-align: right;
-        }
-        .upload-status.loading {
-            color: #3B82F6;
-        }
-        .upload-status.done {
-            color: #10B981;
-        }
-        .upload-status.error {
-            color: #EF4444;
-        }
         .danger-zone {
             border-color: rgba(239, 68, 68, 0.2);
         }
@@ -689,10 +645,7 @@
                     <textarea id="bioInput" placeholder="Açıklama" rows="2"></textarea>
 
                     <h4>Profil Fotoğrafı</h4>
-                    <div class="file-upload-wrapper">
-                        <input type="file" id="avatarUpload" accept="image/*">
-                        <span class="upload-status" id="avatarStatus">📎</span>
-                    </div>
+                    <p class="text-sm mb-8">📸 Bir resim linki yapıştır veya <a href="https://hizliresim.com" target="_blank" style="color:#3B82F6;">hizliresim.com</a>'a yükleyip linki al.</p>
                     <input type="text" id="avatarInput" placeholder="Fotoğraf linki (https://...)">
 
                     <h4>Yazı Tipi</h4>
@@ -822,10 +775,7 @@
                     <h3>🎨 Arka Plan</h3>
 
                     <h4>Arka Plan Resmi</h4>
-                    <div class="file-upload-wrapper">
-                        <input type="file" id="bgUpload" accept="image/*">
-                        <span class="upload-status" id="bgStatus">📎</span>
-                    </div>
+                    <p class="text-sm mb-8">🖼️ Bir resim linki yapıştır veya <a href="https://hizliresim.com" target="_blank" style="color:#3B82F6;">hizliresim.com</a>'a yükleyip linki al.</p>
                     <input type="text" id="bgImage" placeholder="Resim linki (https://...)">
 
                     <h4>Arka Plan Videosu</h4>
@@ -951,12 +901,6 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-
-        // ============================================================
-        // CLOUDINARY CONFIG - SENİN BİLGİLERİNLE!
-        // ============================================================
-        const CLOUDINARY_CLOUD_NAME = 'site';
-        const CLOUDINARY_UPLOAD_PRESET = 'bio-uploads';
 
         // ============================================================
         // STATE
@@ -1544,65 +1488,6 @@
                 musicOpacity: d.musicOpacity,
                 musicBlur: d.musicBlur
             }, '✅ Müzik kaydedildi!');
-        });
-
-        // ============================================================
-        // FILE UPLOAD (Cloudinary Unsigned)
-        // ============================================================
-        async function uploadFile(file, statusEl, targetInput) {
-            if (!file) return;
-
-            if (file.size > 5 * 1024 * 1024) {
-                statusEl.textContent = '❌ 5MB max';
-                statusEl.className = 'upload-status error';
-                showMsg('Dosya boyutu 5MB\'dan büyük!', 'error');
-                return;
-            }
-
-            statusEl.textContent = '⏳ Yükleniyor...';
-            statusEl.className = 'upload-status loading';
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-            try {
-                const res = await fetch(
-                    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, {
-                        method: 'POST',
-                        body: formData
-                    }
-                );
-                const data = await res.json();
-
-                if (data.secure_url) {
-                    document.getElementById(targetInput).value = data.secure_url;
-                    statusEl.textContent = '✅';
-                    statusEl.className = 'upload-status done';
-                    showMsg('✅ Resim yüklendi!', 'success');
-                    pushPreview();
-                } else {
-                    statusEl.textContent = '❌';
-                    statusEl.className = 'upload-status error';
-                    showMsg('Cloudinary hatası: ' + (data.error?.message || 'Bilinmeyen hata'), 'error');
-                    console.error('Cloudinary error:', data);
-                }
-            } catch (err) {
-                statusEl.textContent = '❌';
-                statusEl.className = 'upload-status error';
-                showMsg('Yükleme başarısız: ' + err.message, 'error');
-                console.error('Upload error:', err);
-            }
-        }
-
-        $('avatarUpload').addEventListener('change', (e) => {
-            uploadFile(e.target.files[0], $('avatarStatus'), 'avatarInput');
-            e.target.value = '';
-        });
-
-        $('bgUpload').addEventListener('change', (e) => {
-            uploadFile(e.target.files[0], $('bgStatus'), 'bgImage');
-            e.target.value = '';
         });
 
         // ============================================================
