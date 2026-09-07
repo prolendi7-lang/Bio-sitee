@@ -7,7 +7,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        /* ----- MODERN NEON GLASS THEME ----- */
         * {
             margin: 0;
             padding: 0;
@@ -22,7 +21,6 @@
             background-image: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.06) 0%, transparent 40%),
                               radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 40%);
         }
-
         header {
             position: sticky;
             top: 0;
@@ -33,7 +31,6 @@
             padding: 16px 24px;
             background: rgba(11, 15, 23, 0.85);
             backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
         header .logo {
@@ -67,7 +64,6 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
         }
-
         .hero {
             text-align: center;
             padding: 48px 24px 28px;
@@ -90,7 +86,6 @@
             color: #6B7280;
             font-size: 15px;
         }
-
         .grid {
             max-width: 1100px;
             margin: 0 auto;
@@ -99,7 +94,6 @@
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 16px;
         }
-
         .card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -153,7 +147,6 @@
             font-size: 11px;
             color: #4B5563;
         }
-
         .loading,
         .empty {
             text-align: center;
@@ -175,11 +168,9 @@
                 transform: rotate(360deg);
             }
         }
-
         .hidden {
             display: none !important;
         }
-
         @media (max-width: 480px) {
             .hero h1 {
                 font-size: 26px;
@@ -284,7 +275,8 @@
                     grid.appendChild(a);
                 });
             })
-            .catch(() => {
+            .catch((err) => {
+                console.error('Keşfet yüklenemedi:', err);
                 document.getElementById('loadingState').classList.add('hidden');
                 const empty = document.getElementById('emptyState');
                 empty.classList.remove('hidden');
