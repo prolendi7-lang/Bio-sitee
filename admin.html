@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bio Panelim</title>
-    <!-- Firebase -->
+    <title>Giriş Yap / Kayıt Ol | Bio</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <!-- SortableJS -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
         /* ===== TAMAMEN YENİ VE PROFESYONEL STİLLER ===== */
         * {
@@ -18,847 +15,307 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #0B0F17;
-            color: #F9FAFB;
             min-height: 100vh;
-            padding: 20px;
-        }
-        .app {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        /* Header */
-        .header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 12px 24px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
+            justify-content: center;
+            padding: 20px;
+            background-image: radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 30%),
+                              radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 30%);
         }
-        .header .logo {
-            font-size: 22px;
+        .glass-card {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 32px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo h1 {
+            font-size: 28px;
             font-weight: 700;
             background: linear-gradient(135deg, #3B82F6, #8B5CF6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        .header .user-info {
+        .logo p {
+            color: #6B7280;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        .tab-bar {
             display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 4px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .header .user-info .email {
-            color: #9CA3AF;
-            font-size: 13px;
-        }
-        .header .user-info .url-chip {
-            background: rgba(255, 255, 255, 0.06);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .header .user-info .url-chip:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .btn {
-            padding: 8px 20px;
-            border-radius: 10px;
+        .tab-bar button {
+            flex: 1;
+            padding: 12px;
             border: none;
+            background: transparent;
+            color: #9CA3AF;
+            font-size: 15px;
             font-weight: 600;
-            font-size: 13px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             font-family: inherit;
         }
-        .btn-primary {
+        .tab-bar button.active {
             background: linear-gradient(135deg, #3B82F6, #8B5CF6);
             color: #fff;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-        }
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.06);
-            color: #F9FAFB;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.15);
-            color: #F87171;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-        .btn-danger:hover {
-            background: rgba(239, 68, 68, 0.25);
-        }
-        .btn-sm {
-            padding: 4px 12px;
-            font-size: 12px;
-        }
-        /* Gate (Giriş kontrolü) */
-        .gate {
-            text-align: center;
-            padding: 60px 20px;
-            color: #9CA3AF;
-        }
-        .gate.hidden {
-            display: none;
-        }
-        /* Verify Banner */
-        .verify-banner {
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid rgba(245, 158, 11, 0.2);
-            border-radius: 12px;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .verify-banner.hidden {
-            display: none;
-        }
-        .verify-banner .msg {
-            color: #FBBF24;
-            font-size: 13px;
-        }
-        .verify-banner .actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        /* Main Layout */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-        @media (max-width: 900px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-        .panel {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 24px;
-        }
-        .panel h2 {
-            font-size: 18px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .panel h2 .badge {
-            font-size: 12px;
-            font-weight: 400;
-            color: #6B7280;
+        .tab-bar button:hover:not(.active) {
+            color: #fff;
         }
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 18px;
         }
         .form-group label {
             display: block;
             font-size: 12px;
             font-weight: 600;
             color: #9CA3AF;
-            margin-bottom: 4px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
         }
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .form-group input {
             width: 100%;
-            padding: 10px 14px;
+            padding: 14px 16px;
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            color: #F9FAFB;
-            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 15px;
+            transition: all 0.3s ease;
             font-family: inherit;
-            transition: all 0.2s;
         }
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .form-group input:focus {
             outline: none;
             border-color: #3B82F6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            background: rgba(255, 255, 255, 0.08);
         }
-        .form-group textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        @media (max-width: 480px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-        .range-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #6B7280;
-        }
-        input[type="range"] {
-            width: 100%;
-            accent-color: #3B82F6;
-            background: transparent;
-            padding: 0;
-            border: none;
-        }
-        input[type="color"] {
-            width: 48px;
-            height: 48px;
-            padding: 2px;
-            border-radius: 10px;
-            cursor: pointer;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .upload-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .upload-group input[type="file"] {
-            display: none;
-        }
-        .upload-group .file-label {
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 10px;
-            font-size: 13px;
-            cursor: pointer;
-            border: 1px dashed rgba(255, 255, 255, 0.15);
-            transition: all 0.2s;
-        }
-        .upload-group .file-label:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .upload-status {
-            font-size: 12px;
-        }
-        .upload-status.loading {
-            color: #FBBF24;
-        }
-        .upload-status.done {
-            color: #34D399;
-        }
-        .upload-status.error {
-            color: #F87171;
-        }
-        /* Link Listesi */
-        .link-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 10px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px;
-            margin-bottom: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-        }
-        .link-item .drag-handle {
-            cursor: grab;
+        .form-group input::placeholder {
             color: #4B5563;
-            font-size: 18px;
-            user-select: none;
-            width: 24px;
-            text-align: center;
         }
-        .link-item input {
-            background: transparent;
-            border: none;
-            color: #F9FAFB;
-            padding: 4px 6px;
-            font-size: 13px;
-            font-family: inherit;
-            flex: 1;
-            min-width: 50px;
-        }
-        .link-item input:focus {
-            outline: none;
+        .username-prefix {
+            display: flex;
+            align-items: center;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            transition: all 0.3s ease;
+            overflow: hidden;
         }
-        .link-item input[type="text"]:first-of-type {
-            max-width: 40px;
-            text-align: center;
+        .username-prefix:focus-within {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            background: rgba(255, 255, 255, 0.08);
         }
-        .link-item .link-stats {
-            font-size: 11px;
-            color: #4B5563;
+        .username-prefix span {
+            padding: 0 8px 0 14px;
+            color: #6B7280;
+            font-size: 13px;
+            font-weight: 500;
             white-space: nowrap;
         }
-        .link-item .del-link {
-            background: none;
-            border: none;
-            color: #6B7280;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 0 4px;
-            transition: color 0.2s;
+        .username-prefix input {
+            border: none !important;
+            background: transparent !important;
+            padding: 14px 16px 14px 4px !important;
+            box-shadow: none !important;
         }
-        .link-item .del-link:hover {
-            color: #F87171;
-        }
-        .template-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin: 8px 0 12px;
-        }
-        .template-grid .tpl-btn {
-            padding: 4px 12px;
-            font-size: 12px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.03);
-            color: #9CA3AF;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .template-grid .tpl-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-        }
-        /* Effect Buttons */
-        .effect-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-        .effect-grid .effect-btn {
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.03);
-            color: #9CA3AF;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .effect-grid .effect-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-        .effect-grid .effect-btn.active {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: #3B82F6;
-            color: #fff;
-        }
-        /* Theme Presets */
-        .preset-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
-        .preset-grid .preset-btn {
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.03);
-            color: #9CA3AF;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .preset-grid .preset-btn:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-        }
-        /* Preview Frame */
-        .preview-container {
-            position: sticky;
-            top: 20px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .preview-container iframe {
-            width: 100%;
-            height: 700px;
-            border: none;
-            background: #0B0F17;
-        }
-        @media (max-width: 900px) {
-            .preview-container {
-                position: static;
-            }
-            .preview-container iframe {
-                height: 500px;
-            }
-        }
-        .tab-toggle {
-            display: none;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .tab-toggle button {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: transparent;
-            color: #9CA3AF;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-        .tab-toggle button.active {
-            background: rgba(59, 130, 246, 0.15);
-            border-color: #3B82F6;
-            color: #fff;
-        }
-        .tab-hidden {
-            display: none !important;
-        }
-        @media (max-width: 900px) {
-            .tab-toggle {
-                display: flex;
-            }
-        }
-        /* Message */
-        .message {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 14px 28px;
-            border-radius: 14px;
-            font-size: 14px;
-            font-weight: 600;
-            z-index: 1000;
-            display: none;
-            max-width: 90%;
-            text-align: center;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
-        }
-        .message.success {
-            background: rgba(16, 185, 129, 0.2);
-            color: #34D399;
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-        .message.error {
-            background: rgba(239, 68, 68, 0.2);
-            color: #F87171;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-        .section-divider {
-            border: none;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            margin: 20px 0;
+        .username-prefix input:focus {
+            box-shadow: none !important;
         }
         .hint {
             font-size: 12px;
-            margin-top: 4px;
+            margin-top: 6px;
             min-height: 18px;
         }
         .hint.ok {
-            color: #34D399;
+            color: #10B981;
         }
         .hint.bad {
-            color: #F87171;
+            color: #EF4444;
         }
         .hint.checking {
             color: #6B7280;
         }
-        .inline-flex {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            font-family: inherit;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.35);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .form-footer {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #6B7280;
+        }
+        .form-footer a {
+            color: #3B82F6;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .form-footer a:hover {
+            color: #8B5CF6;
+            text-decoration: underline;
+        }
+        .msg {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+        }
+        .msg.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            color: #F87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .msg.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34D399;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .tab-content {
+            display: none;
+            animation: fadeUp 0.4s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .forgot-link {
+            display: block;
+            text-align: right;
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: -10px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .forgot-link:hover {
+            color: #3B82F6;
+        }
+        @media (max-width: 480px) {
+            .glass-card {
+                padding: 28px 20px;
+            }
+            .logo h1 {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div class="app" id="app">
-        <!-- GATE -->
-        <div class="gate" id="gate">Yükleniyor...</div>
+    <div class="glass-card" id="app">
+        <div class="logo">
+            <h1>bio<span style="color:#3B82F6; -webkit-text-fill-color:#3B82F6;">.</span></h1>
+            <p>Kendi link sayfanı oluştur</p>
+        </div>
 
-        <!-- ANA PANEL -->
-        <div id="mainPanel" style="display:none;">
+        <div class="tab-bar">
+            <button class="active" data-tab="loginTab">Giriş Yap</button>
+            <button data-tab="registerTab">Kayıt Ol</button>
+        </div>
 
-            <!-- HEADER -->
-            <header class="header">
-                <span class="logo">bio<span style="color:#8B5CF6; -webkit-text-fill-color:#8B5CF6;">.</span></span>
-                <div class="user-info">
-                    <span class="email" id="accountEmail">email@ornek.com</span>
-                    <span class="url-chip" id="urlChip" title="Linki kopyala">site.com/kullanici</span>
-                    <button class="btn btn-secondary btn-sm" id="logoutBtn">Çıkış</button>
+        <!-- LOGIN -->
+        <div class="tab-content active" id="loginTab">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>E-posta</label>
+                    <input type="email" id="loginEmail" placeholder="ornek@eposta.com" required>
                 </div>
-            </header>
-
-            <!-- VERIFY BANNER -->
-            <div class="verify-banner hidden" id="verifyBanner">
-                <span class="msg">📧 E-postanı doğrulamadın. Hesabını korumak için lütfen doğrula.</span>
-                <div class="actions">
-                    <button class="btn btn-secondary btn-sm" id="resendVerifyBtn">Tekrar Gönder</button>
-                    <button class="btn btn-secondary btn-sm" id="checkVerifyBtn">Kontrol Et</button>
+                <div class="form-group">
+                    <label>Şifre</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
                 </div>
-            </div>
+                <span class="forgot-link" id="forgotLink">Şifremi unuttum</span>
+                <button type="submit" class="btn-primary" id="loginBtn">Giriş Yap</button>
+                <div class="msg" id="loginMsg"></div>
+            </form>
+        </div>
 
-            <!-- MOBILE TABS -->
-            <div class="tab-toggle" id="tabToggle">
-                <button class="active" id="tabEdit">✏️ Düzenle</button>
-                <button id="tabPreview">👁️ Önizle</button>
-            </div>
-
-            <!-- MAIN LAYOUT -->
-            <div class="main-layout">
-                <!-- EDIT PANE -->
-                <div class="panel" id="editPane">
-                    <h2>✏️ Profil Düzenle</h2>
-
-                    <!-- TEMEL BİLGİLER -->
-                    <div class="form-group">
-                        <label>İsim / Başlık</label>
-                        <input type="text" id="nameInput" placeholder="Adın veya markan">
+        <!-- REGISTER -->
+        <div class="tab-content" id="registerTab">
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>Kullanıcı Adı</label>
+                    <div class="username-prefix">
+                        <span id="hostLabel">site.com/</span>
+                        <input type="text" id="regUsername" placeholder="kullanici" maxlength="20" autocomplete="off" required>
                     </div>
-                    <div class="form-group">
-                        <label>Bio</label>
-                        <textarea id="bioInput" placeholder="Kendini tanıt..." rows="3"></textarea>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Sol Emoji</label>
-                            <input type="text" id="emojiLeft" placeholder="🔥" maxlength="4">
-                        </div>
-                        <div class="form-group">
-                            <label>Sağ Emoji</label>
-                            <input type="text" id="emojiRight" placeholder="✨" maxlength="4">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="emoji3d" checked> 3D Efektli Emoji
-                        </label>
-                    </div>
-
-                    <hr class="section-divider">
-
-                    <!-- PROFİL FOTOĞRAFI & ARKA PLAN -->
-                    <div class="form-group">
-                        <label>Profil Fotoğrafı</label>
-                        <div class="upload-group">
-                            <input type="text" id="avatarInput" placeholder="Fotoğraf URL" style="flex:1;">
-                            <label class="file-label" id="avatarLabel">📁 Dosya Seç</label>
-                            <input type="file" id="avatarUpload" accept="image/*">
-                            <span class="upload-status" id="avatarStatus"></span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Arka Plan Resmi</label>
-                        <div class="upload-group">
-                            <input type="text" id="bgImage" placeholder="Arka plan URL" style="flex:1;">
-                            <label class="file-label" id="bgLabel">📁 Dosya Seç</label>
-                            <input type="file" id="bgUpload" accept="image/*">
-                            <span class="upload-status" id="bgStatus"></span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Arka Plan Rengi</label>
-                        <input type="color" id="bgColor" value="#0B0F17">
-                    </div>
-                    <div class="form-group">
-                        <label>Arka Plan Videosu (URL)</label>
-                        <input type="text" id="bgVideo" placeholder="video.mp4 veya .webm URL">
-                    </div>
-
-                    <hr class="section-divider">
-
-                    <!-- EFFECTS & THEMES -->
-                    <div class="form-group">
-                        <label>Hazır Efektler</label>
-                        <div class="effect-grid" id="effectGrid">
-                            <button class="effect-btn active" data-effect="default">Varsayılan</button>
-                            <button class="effect-btn" data-effect="gold">Altın</button>
-                            <button class="effect-btn" data-effect="neon-red">Neon Kırmızı</button>
-                            <button class="effect-btn" data-effect="neon-blue">Neon Mavi</button>
-                            <button class="effect-btn" data-effect="purple">Mor</button>
-                            <button class="effect-btn" data-effect="rainbow">Gökkuşağı</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Hazır Temalar</label>
-                        <div class="preset-grid">
-                            <button class="preset-btn" data-theme="cyberpunk">🤖 Cyberpunk</button>
-                            <button class="preset-btn" data-theme="minimal">🌿 Minimal</button>
-                            <button class="preset-btn" data-theme="gold">✨ Altın</button>
-                            <button class="preset-btn" data-theme="neon">💚 Neon</button>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Yazı Tipi</label>
-                            <select id="fontFamily">
-                                <option value="Inter">Inter</option>
-                                <option value="Poppins">Poppins</option>
-                                <option value="Montserrat">Montserrat</option>
-                                <option value="Playfair Display">Playfair Display</option>
-                                <option value="Space Grotesk">Space Grotesk</option>
-                                <option value="DM Sans">DM Sans</option>
-                                <option value="Bebas Neue">Bebas Neue</option>
-                                <option value="Caveat">Caveat</option>
-                                <option value="Roboto Mono">Roboto Mono</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Neon Rengi</label>
-                            <input type="color" id="neonColor" value="#3B82F6">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Neon Boyutu: <span id="ns">10px</span></label>
-                        <input type="range" id="neonSize" min="2" max="30" value="10">
-                    </div>
-                    <div class="form-group">
-                        <label>İsim Gradyanı</label>
-                        <input type="text" id="nameGradient" placeholder="linear-gradient(...)">
-                    </div>
-                    <div class="form-group">
-                        <label>İsim Gölgesi (Glow)</label>
-                        <input type="text" id="nameGlow" placeholder="0 0 20px rgba(...)">
-                    </div>
-
-                    <hr class="section-divider">
-
-                    <!-- KART AYARLARI -->
-                    <div class="form-group">
-                        <label>Kart Opaklığı: <span id="cov">80%</span></label>
-                        <input type="range" id="cardOpacity" min="10" max="100" value="80">
-                    </div>
-                    <div class="form-group">
-                        <label>Kart Bulanıklığı: <span id="cbv">20px</span></label>
-                        <input type="range" id="cardBlur" min="0" max="40" value="20">
-                    </div>
-
-                    <hr class="section-divider">
-
-                    <!-- BADGE -->
-                    <div class="form-group">
-                        <label><input type="checkbox" id="showBadge" checked> Rozeti Göster</label>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Rozet İkonu</label>
-                            <input type="text" id="badgeIcon" value="✓" maxlength="3">
-                        </div>
-                        <div class="form-group">
-                            <label>Rozet Rengi (CSS rengi veya gradient)</label>
-                            <input type="text" id="badgeColor" value="linear-gradient(135deg, #3B82F6, #8B5CF6)">
-                        </div>
-                    </div>
-
-                    <hr class="section-divider">
-
-                    <!-- PARTİKÜLLER -->
-                    <div class="form-group">
-                        <label><input type="checkbox" id="particlesToggle" checked> Partikülleri Göster</label>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Partikül Rengi</label>
-                            <input type="text" id="particleColor" value="rgba(59,130,246,0.3)">
-                        </div>
-                        <div class="form-group">
-                            <label>Partikül Sayısı: <span id="pv">40</span></label>
-                            <input type="range" id="particleCount" min="10" max="100" value="40">
-                        </div>
-                    </div>
-
-                    <hr class="section-divider">
-
-                    <!-- LİNKLER -->
-                    <h2 style="font-size:16px; margin-top:0;">🔗 Linkler</h2>
-                    <div class="template-grid">
-                        <button class="tpl-btn" data-tpl="instagram">📷 Instagram</button>
-                        <button class="tpl-btn" data-tpl="youtube">▶️ YouTube</button>
-                        <button class="tpl-btn" data-tpl="tiktok">🎵 TikTok</button>
-                        <button class="tpl-btn" data-tpl="discord">🎮 Discord</button>
-                        <button class="tpl-btn" data-tpl="telegram">📱 Telegram</button>
-                        <button class="tpl-btn" data-tpl="twitch">📺 Twitch</button>
-                        <button class="tpl-btn" data-tpl="github">💻 GitHub</button>
-                        <button class="tpl-btn" data-tpl="x">🐦 X</button>
-                        <button class="tpl-btn" data-tpl="spotify">🎧 Spotify</button>
-                        <button class="tpl-btn" data-tpl="website">🌐 Website</button>
-                    </div>
-                    <div id="linksList"></div>
-                    <button class="btn btn-secondary btn-sm" id="addLinkBtn" style="margin-top:8px;">+ Link Ekle</button>
-
-                    <hr class="section-divider">
-
-                    <!-- BUTON AYARLARI -->
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Buton Stili</label>
-                            <select id="btnStyle">
-                                <option value="rounded-full">Yuvarlak</option>
-                                <option value="rounded-lg">Köşeli</option>
-                                <option value="rounded-none">Düz</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label><input type="checkbox" id="btnGlow" checked> Buton Glow</label>
-                        <label style="margin-left:16px;"><input type="checkbox" id="btnShimmer" checked> Shimmer</label>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Buton Arka Plan</label>
-                            <input type="text" id="btnBgColor" placeholder="rgba(...)">
-                        </div>
-                        <div class="form-group">
-                            <label>Buton Border</label>
-                            <input type="text" id="btnBorderColor" placeholder="#renk">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Hover Arka Plan</label>
-                            <input type="text" id="btnHoverColor" placeholder="rgba(...)">
-                        </div>
-                        <div class="form-group">
-                            <label>Hover Border</label>
-                            <input type="text" id="btnHoverBorder" placeholder="#renk">
-                        </div>
-                    </div>
-
-                    <hr class="section-divider">
-
-                    <!-- MÜZİK -->
-                    <h2 style="font-size:16px; margin-top:0;">🎵 Müzik Player</h2>
-                    <div class="form-group">
-                        <label>MP3 URL</label>
-                        <input type="text" id="musicUrl" placeholder="https://...mp3">
-                    </div>
-                    <div class="form-group">
-                        <label>Şarkı Adı</label>
-                        <input type="text" id="musicTitleInput" placeholder="Şarkı adı">
-                    </div>
-                    <div class="form-group">
-                        <label>Sanatçı</label>
-                        <input type="text" id="musicArtist" placeholder="Sanatçı adı">
-                    </div>
-                    <div class="form-group">
-                        <label>Kapak Resmi</label>
-                        <input type="text" id="musicCover" placeholder="Kapak resmi URL">
-                    </div>
-                    <div class="form-group">
-                        <label><input type="checkbox" id="musicAutoplay" checked> Otomatik Oynat</label>
-                    </div>
-                    <div class="form-group">
-                        <label>Opaklık: <span id="mov">90%</span></label>
-                        <input type="range" id="musicOpacity" min="20" max="100" value="90">
-                    </div>
-                    <div class="form-group">
-                        <label>Bulanıklık: <span id="mbv">10px</span></label>
-                        <input type="range" id="musicBlur" min="0" max="30" value="10">
-                    </div>
-                    <button class="btn btn-secondary btn-sm" id="testMusicBtn">🎵 Müziği Test Et</button>
-
-                    <hr class="section-divider">
-
-                    <!-- KAYDET BUTONLARI -->
-                    <div class="inline-flex" style="gap:10px; flex-wrap:wrap;">
-                        <button class="btn btn-primary" id="saveProfileBtn">💾 Profili Kaydet</button>
-                        <button class="btn btn-primary" id="saveLinksBtn">💾 Linkleri Kaydet</button>
-                        <button class="btn btn-primary" id="saveBackgroundBtn">💾 Arka Planı Kaydet</button>
-                        <button class="btn btn-primary" id="saveMusicBtn">💾 Müziği Kaydet</button>
-                    </div>
-
-                    <hr class="section-divider">
-
-                    <!-- HESAP AYARLARI -->
-                    <h2 style="font-size:16px; margin-top:0;">🔐 Hesap Ayarları</h2>
-                    <div class="form-group">
-                        <label>Mevcut Kullanıcı Adı: <strong id="currentUsernameLabel">@kullanici</strong></label>
-                    </div>
-                    <div class="form-group">
-                        <label>Yeni Kullanıcı Adı</label>
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <span style="color:#6B7280; font-size:13px;" id="usernameHostLabel">site.com/</span>
-                            <input type="text" id="newUsernameInput" placeholder="yeni-kullanici" style="flex:1;" maxlength="20">
-                            <button class="btn btn-secondary btn-sm" id="changeUsernameBtn">Değiştir</button>
-                        </div>
-                        <div class="hint" id="newUsernameHint"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Mevcut Şifre</label>
-                            <input type="password" id="currentPassInput" placeholder="••••••••">
-                        </div>
-                        <div class="form-group">
-                            <label>Yeni Şifre (min 6 karakter)</label>
-                            <input type="password" id="newPassInput" placeholder="••••••••">
-                        </div>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" id="changePassBtn">Şifreyi Değiştir</button>
-                    <button class="btn btn-secondary btn-sm" id="resetPassBtn" style="margin-left:8px;">Şifre Sıfırlama Gönder</button>
-
-                    <hr class="section-divider">
-
-                    <!-- HESAP SİL -->
-                    <div style="border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:16px; background:rgba(239,68,68,0.05);">
-                        <h3 style="color:#F87171; font-size:14px;">⚠️ Tehlikeli Bölge</h3>
-                        <div class="form-group">
-                            <label>Hesabı silmek için şifreni gir</label>
-                            <div style="display:flex; gap:8px;">
-                                <input type="password" id="deletePassInput" placeholder="••••••••" style="flex:1;">
-                                <button class="btn btn-danger btn-sm" id="deleteAccountBtn">Hesabı Kalıcı Sil</button>
-                            </div>
-                        </div>
-                    </div>
-
+                    <div class="hint" id="usernameHint"></div>
                 </div>
-
-                <!-- PREVIEW PANE -->
-                <div class="panel preview-container" id="previewPane">
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding:0 0 12px 0;">
-                        <h2 style="font-size:16px; margin:0;">👁️ Önizleme</h2>
-                        <a href="#" target="_blank" id="previewLink" style="color:#3B82F6; text-decoration:none; font-size:13px;">🔗 Canlı Link</a>
-                    </div>
-                    <iframe id="previewFrame" src="/preview.html"></iframe>
-                    <div style="margin-top:12px; font-size:12px; color:#6B7280; text-align:center;">
-                        Toplam Görüntülenme: <span id="totalViews">0</span>
-                    </div>
+                <div class="form-group">
+                    <label>E-posta</label>
+                    <input type="email" id="regEmail" placeholder="ornek@eposta.com" required>
                 </div>
-            </div>
+                <div class="form-group">
+                    <label>Şifre</label>
+                    <input type="password" id="regPassword" placeholder="En az 6 karakter" minlength="6" required>
+                </div>
+                <button type="submit" class="btn-primary" id="registerBtn">Hesap Oluştur</button>
+                <div class="msg" id="registerMsg"></div>
+            </form>
+        </div>
+
+        <div class="form-footer">
+            <span id="footerText">Hesabın var mı? <a id="switchToLogin">Giriş yap</a></span>
         </div>
     </div>
-
-    <!-- MESSAGE -->
-    <div class="message" id="message"></div>
 
     <script>
         // ============================================================
@@ -877,873 +334,264 @@
         const db = firebase.firestore();
 
         // ============================================================
-        // CLOUDINARY CONFIG - KENDİ BİLGİLERİNİ GİR!
-        // ============================================================
-        const CLOUDINARY_CLOUD_NAME = 'demo'; // 👈 KENDİ CLOUD_NAME'İNİ GİR
-        const CLOUDINARY_UPLOAD_PRESET = 'ml_default'; // 👈 KENDİ UPLOAD_PRESET'İNİ GİR
-
-        // ============================================================
-        // STATE
-        // ============================================================
-        let uid = null;
-        let username = '';
-        let currentLinks = [];
-        let previewReady = false;
-        let pendingPreview = null;
-        let selectedEffect = 'default';
-
-        // ============================================================
         // DOM REFS
         // ============================================================
-        const $ = id => document.getElementById(id);
-        const mainPanel = $('mainPanel');
-        const gate = $('gate');
-        const message = $('message');
-        const previewFrame = $('previewFrame');
+        const tabs = document.querySelectorAll('[data-tab]');
+        const contents = {
+            login: document.getElementById('loginTab'),
+            register: document.getElementById('registerTab')
+        };
+        const footerText = document.getElementById('footerText');
 
-        // ============================================================
-        // AUTH STATE
-        // ============================================================
-        auth.onAuthStateChanged(user => {
-            if (!user) {
-                window.location.href = '/login.html';
+        function switchTab(tabId) {
+            tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+            Object.keys(contents).forEach(key => {
+                contents[key].classList.toggle('active', key === tabId);
+            });
+            if (tabId === 'login') {
+                footerText.innerHTML = `Hesabın yok mu? <a id="switchToRegister">Kayıt ol</a>`;
+                document.getElementById('switchToRegister')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchTab('register');
+                });
+            } else {
+                footerText.innerHTML = `Hesabın var mı? <a id="switchToLogin">Giriş yap</a>`;
+                document.getElementById('switchToLogin')?.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchTab('login');
+                });
+            }
+        }
+
+        tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+            });
+        });
+
+        switchTab('login');
+
+        document.getElementById('hostLabel').textContent = window.location.host + '/';
+
+        const RESERVED = ['admin', 'login', 'register', 'index', 'api', 'www', 'app', 'static', 'assets',
+            'favicon.ico', 'null', 'undefined', 'profile', 'preview', 'discover'
+        ];
+
+        const usernameInput = document.getElementById('regUsername');
+        const hint = document.getElementById('usernameHint');
+        let usernameValid = false;
+        let checkTimer = null;
+
+        usernameInput.addEventListener('input', () => {
+            usernameInput.value = usernameInput.value.replace(/[^a-zA-Z0-9_]/g, '');
+            usernameValid = false;
+            clearTimeout(checkTimer);
+            const v = usernameInput.value.trim();
+            if (v.length < 3) {
+                hint.textContent = 'En az 3 karakter (harf, rakam, _)';
+                hint.className = 'hint';
                 return;
             }
-            uid = user.uid;
-            $('accountEmail').textContent = user.email || '';
-            updateVerifyUI(user);
-            loadData();
-            mainPanel.style.display = 'block';
-            gate.classList.add('hidden');
-        });
-
-        // ============================================================
-        // VERIFY UI
-        // ============================================================
-        function updateVerifyUI(user) {
-            const banner = $('verifyBanner');
-            if (user.emailVerified) {
-                banner.classList.add('hidden');
-                db.collection('users').doc(uid).set({ emailVerified: true }, { merge: true }).catch(() => {});
-            } else {
-                banner.classList.remove('hidden');
+            if (RESERVED.includes(v.toLowerCase())) {
+                hint.textContent = 'Bu kullanıcı adı ayrılmış';
+                hint.className = 'hint bad';
+                return;
             }
-        }
-
-        let resendCooldown = false;
-        $('resendVerifyBtn').addEventListener('click', async () => {
-            if (resendCooldown) return;
-            const btn = $('resendVerifyBtn');
-            try {
-                await auth.currentUser.sendEmailVerification();
-                showMsg('Doğrulama e-postası tekrar gönderildi.', 'success');
-                resendCooldown = true;
-                btn.disabled = true;
-                setTimeout(() => { resendCooldown = false;
-                    btn.disabled = false; }, 60000);
-            } catch (err) {
-                showMsg('Gönderilemedi (' + (err.code || err.message) + ')', 'error');
-            }
+            hint.textContent = 'Kontrol ediliyor...';
+            hint.className = 'hint checking';
+            checkTimer = setTimeout(() => {
+                db.collection('usernames').doc(v.toLowerCase()).get().then(doc => {
+                    if (doc.exists) {
+                        hint.textContent = '❌ Bu kullanıcı adı alınmış';
+                        hint.className = 'hint bad';
+                        usernameValid = false;
+                    } else {
+                        hint.textContent = '✓ ' + v + ' kullanılabilir';
+                        hint.className = 'hint ok';
+                        usernameValid = true;
+                    }
+                }).catch(() => { hint.textContent = ''; });
+            }, 450);
         });
 
-        $('checkVerifyBtn').addEventListener('click', async () => {
-            await auth.currentUser.reload();
-            updateVerifyUI(auth.currentUser);
-            if (auth.currentUser.emailVerified) showMsg('E-posta doğrulandı! 🎉', 'success');
-            else showMsg('Henüz doğrulanmamış görünüyor.', 'error');
-        });
-
-        // ============================================================
-        // HELPERS
-        // ============================================================
-        function showMsg(text, type) {
-            message.textContent = text;
-            message.className = 'message ' + type;
-            message.style.display = 'block';
-            clearTimeout(message._timer);
-            message._timer = setTimeout(() => { message.style.display = 'none'; }, 5000);
-        }
-
-        function safeUrl(url) {
-            if (!url) return '';
-            try {
-                const u = new URL(String(url), window.location.href);
-                if (u.protocol === 'http:' || u.protocol === 'https:') return u.href;
-            } catch (e) { return ''; }
-            return '';
+        function showMsg(el, text, type) {
+            el.textContent = text;
+            el.className = 'msg ' + type;
+            el.style.display = 'block';
         }
 
         function explainAuthError(err) {
             const code = err?.code;
-            if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') return 'Mevcut şifre yanlış.';
+            if (code === 'auth/email-already-in-use') return 'Bu e-posta zaten kayıtlı.';
+            if (code === 'auth/invalid-email') return 'Geçersiz e-posta adresi.';
+            if (code === 'auth/weak-password') return 'Şifre en az 6 karakter olmalı.';
+            if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential')
+                return 'E-posta veya şifre hatalı.';
             if (code === 'auth/too-many-requests') return 'Çok fazla deneme, biraz bekleyip tekrar dene.';
+            if (code === 'auth/network-request-failed') return 'Ağ bağlantısını kontrol et.';
+            if (code === 'auth/operation-not-allowed') return 'Email/Password girişi kapalı. Firebase Console\'dan aç.';
             return 'Hata: ' + (code || err?.message || 'bilinmeyen');
         }
 
-        async function reauthenticate(password) {
-            const cred = firebase.auth.EmailAuthProvider.credential(auth.currentUser.email, password);
-            await auth.currentUser.reauthenticateWithCredential(cred);
-        }
-
         // ============================================================
-        // EFFECTS
+        // LOGIN
         // ============================================================
-        const EFFECTS = {
-            'default': { gradient: 'linear-gradient(135deg, #F9FAFB, #9CA3AF)', glow: 'none', neon: false },
-            'gold': { gradient: 'linear-gradient(135deg, #FFD700, #F59E0B, #FFD700)', glow: '0 0 20px rgba(245,158,11,0.5)',
-                neon: false },
-            'neon-red': { gradient: 'linear-gradient(135deg, #fff, #fff)', glow: 'none', neon: true,
-                neonColor: '#EF4444', neonSize: 10 },
-            'neon-blue': { gradient: 'linear-gradient(135deg, #fff, #fff)', glow: 'none', neon: true,
-                neonColor: '#3B82F6', neonSize: 10 },
-            'purple': { gradient: 'linear-gradient(135deg, #C084FC, #7C3AED)', glow: '0 0 20px rgba(139,92,246,0.5)',
-                neon: false },
-            'rainbow': { gradient: 'linear-gradient(135deg, #EF4444, #F59E0B, #10B981, #3B82F6, #8B5CF6)',
-                glow: '0 0 20px rgba(255,255,255,0.3)', neon: false }
-        };
-
-        // ============================================================
-        // TEMPLATES
-        // ============================================================
-        const TEMPLATES = {
-            'telegram': { icon: '📱', title: 'Telegram', url: 'https://t.me/' },
-            'discord': { icon: '🎮', title: 'Discord', url: 'https://discord.gg/' },
-            'youtube': { icon: '▶️', title: 'YouTube', url: 'https://youtube.com/@' },
-            'instagram': { icon: '📷', title: 'Instagram', url: 'https://instagram.com/' },
-            'tiktok': { icon: '🎵', title: 'TikTok', url: 'https://tiktok.com/@' },
-            'twitch': { icon: '📺', title: 'Twitch', url: 'https://twitch.tv/' },
-            'steam': { icon: '🎯', title: 'Steam', url: 'https://steamcommunity.com/id/' },
-            'spotify': { icon: '🎧', title: 'Spotify', url: 'https://open.spotify.com/user/' },
-            'github': { icon: '💻', title: 'GitHub', url: 'https://github.com/' },
-            'x': { icon: '🐦', title: 'X', url: 'https://x.com/' },
-            'website': { icon: '🌐', title: 'Website', url: 'https://' }
-        };
-
-        // ============================================================
-        // THEME PRESETS
-        // ============================================================
-        const THEMES = {
-            'cyberpunk': {
-                bgColor: '#0B0F17',
-                bgImage: '',
-                bgVideo: '',
-                particleColor: 'rgba(139,92,246,0.3)',
-                particleCount: 50,
-                nameGradient: 'linear-gradient(135deg, #C084FC, #8B5CF6)',
-                nameGlow: '0 0 30px rgba(139,92,246,0.4)',
-                neonColor: '#8B5CF6',
-                neonSize: 14,
-                nameNeon: false,
-                badgeColor: '#8B5CF6',
-                btnBgColor: 'rgba(139,92,246,0.15)',
-                btnBorderColor: '#8B5CF6',
-                btnHoverColor: 'rgba(139,92,246,0.3)',
-                btnHoverBorder: '#C084FC',
-                cardOpacity: 0.85,
-                cardBlur: 24,
-                fontFamily: 'Space Grotesk'
-            },
-            'minimal': {
-                bgColor: '#0B0F17',
-                bgImage: '',
-                bgVideo: '',
-                particleColor: 'rgba(255,255,255,0.15)',
-                particleCount: 30,
-                nameGradient: 'linear-gradient(135deg, #F9FAFB, #9CA3AF)',
-                nameGlow: 'none',
-                neonColor: '#ffffff',
-                neonSize: 8,
-                nameNeon: false,
-                badgeColor: '#6B7280',
-                btnBgColor: 'rgba(255,255,255,0.04)',
-                btnBorderColor: 'rgba(255,255,255,0.08)',
-                btnHoverColor: 'rgba(255,255,255,0.08)',
-                btnHoverBorder: 'rgba(255,255,255,0.15)',
-                cardOpacity: 0.7,
-                cardBlur: 12,
-                fontFamily: 'Inter'
-            },
-            'gold': {
-                bgColor: '#0B0F17',
-                bgImage: '',
-                bgVideo: '',
-                particleColor: 'rgba(245,158,11,0.2)',
-                particleCount: 35,
-                nameGradient: 'linear-gradient(135deg, #FFD700, #F59E0B, #FFD700)',
-                nameGlow: '0 0 30px rgba(245,158,11,0.3)',
-                neonColor: '#F59E0B',
-                neonSize: 12,
-                nameNeon: false,
-                badgeColor: '#F59E0B',
-                btnBgColor: 'rgba(245,158,11,0.1)',
-                btnBorderColor: '#F59E0B',
-                btnHoverColor: 'rgba(245,158,11,0.2)',
-                btnHoverBorder: '#FFD700',
-                cardOpacity: 0.8,
-                cardBlur: 18,
-                fontFamily: 'Playfair Display'
-            },
-            'neon': {
-                bgColor: '#0B0F17',
-                bgImage: '',
-                bgVideo: '',
-                particleColor: 'rgba(16,185,129,0.25)',
-                particleCount: 60,
-                nameGradient: 'linear-gradient(135deg, #34D399, #10B981)',
-                nameGlow: '0 0 30px rgba(16,185,129,0.3)',
-                neonColor: '#10B981',
-                neonSize: 14,
-                nameNeon: true,
-                badgeColor: '#10B981',
-                btnBgColor: 'rgba(16,185,129,0.12)',
-                btnBorderColor: '#10B981',
-                btnHoverColor: 'rgba(16,185,129,0.25)',
-                btnHoverBorder: '#34D399',
-                cardOpacity: 0.82,
-                cardBlur: 20,
-                fontFamily: 'Space Grotesk'
-            }
-        };
-
-        // ============================================================
-        // LOAD DATA
-        // ============================================================
-        function loadData() {
-            db.collection('users').doc(uid).get().then(doc => {
-                if (!doc.exists) {
-                    gate.innerHTML = 'Profil bulunamadı. Kayıt işlemini tamamlamadın — çıkış yapıp tekrar dene.';
-                    gate.classList.remove('hidden');
-                    return;
-                }
-                const d = doc.data();
-                username = d.username || '';
-                $('urlChip').textContent = window.location.host + '/' + username;
-                $('previewLink').href = '/' + username;
-                $('currentUsernameLabel').textContent = '@' + username;
-                $('usernameHostLabel').textContent = window.location.host + '/';
-
-                // Formları doldur
-                $('nameInput').value = d.name || '';
-                $('bioInput').value = d.bio || '';
-                $('avatarInput').value = d.avatar || '';
-                $('fontFamily').value = d.fontFamily || '';
-                $('emojiLeft').value = d.emojiLeft || '';
-                $('emojiRight').value = d.emojiRight || '';
-                $('emoji3d').checked = d.emoji3d !== false;
-                $('nameGradient').value = d.nameGradient || '';
-                $('nameGlow').value = d.nameGlow || '';
-                $('neonColor').value = d.neonColor || '';
-                $('neonSize').value = d.neonSize || 10;
-                $('ns').textContent = (d.neonSize || 10) + 'px';
-                $('showBadge').checked = d.showBadge !== false;
-                $('badgeIcon').value = d.badgeIcon || '✓';
-                $('badgeColor').value = d.badgeColor || 'linear-gradient(135deg, #3B82F6, #8B5CF6)';
-                $('cardOpacity').value = (d.cardOpacity != null ? d.cardOpacity : 0.8) * 100;
-                $('cov').textContent = Math.round((d.cardOpacity != null ? d.cardOpacity : 0.8) * 100) + '%';
-                $('cardBlur').value = d.cardBlur != null ? d.cardBlur : 20;
-                $('cbv').textContent = (d.cardBlur != null ? d.cardBlur : 20) + 'px';
-                $('bgColor').value = d.bgColor || '#0B0F17';
-                $('bgImage').value = d.bgImage || '';
-                $('bgVideo').value = d.bgVideo || '';
-                $('particlesToggle').checked = d.particles !== false;
-                $('particleColor').value = d.particleColor || 'rgba(59,130,246,0.3)';
-                $('particleCount').value = d.particleCount || 40;
-                $('pv').textContent = d.particleCount || 40;
-                $('btnStyle').value = d.btnStyle || 'rounded-full';
-                $('btnGlow').checked = d.btnGlow !== false;
-                $('btnShimmer').checked = d.btnShimmer !== false;
-                $('btnBgColor').value = d.btnBgColor || '';
-                $('btnBorderColor').value = d.btnBorderColor || '';
-                $('btnHoverColor').value = d.btnHoverColor || '';
-                $('btnHoverBorder').value = d.btnHoverBorder || '';
-                $('musicUrl').value = d.musicUrl || '';
-                $('musicTitleInput').value = d.musicTitle || '';
-                $('musicArtist').value = d.musicArtist || '';
-                $('musicCover').value = d.musicCover || '';
-                $('musicAutoplay').checked = d.musicAutoplay !== false;
-                $('musicOpacity').value = (d.musicOpacity != null ? d.musicOpacity : 0.9) * 100;
-                $('mov').textContent = Math.round((d.musicOpacity != null ? d.musicOpacity : 0.9) * 100) + '%';
-                $('musicBlur').value = d.musicBlur != null ? d.musicBlur : 10;
-                $('mbv').textContent = (d.musicBlur != null ? d.musicBlur : 10) + 'px';
-                $('totalViews').textContent = d.views || 0;
-                currentLinks = d.links || [];
-                renderLinks();
-
-                const savedEffect = d._selectedEffect || 'default';
-                selectedEffect = savedEffect;
-                document.querySelectorAll('.effect-btn').forEach(b => {
-                    b.classList.toggle('active', b.dataset.effect === savedEffect);
-                });
-
-                mainPanel.style.display = 'block';
-                gate.classList.add('hidden');
-                pushPreview();
-            }).catch(err => {
-                gate.innerHTML = 'Profil yüklenemedi: ' + (err.code || err.message);
-                gate.classList.remove('hidden');
-            });
-        }
-
-        // ============================================================
-        // COLLECT FORM DATA
-        // ============================================================
-        function collectFormData() {
-            const ef = EFFECTS[selectedEffect] || EFFECTS['default'];
-            return {
-                name: $('nameInput').value || username,
-                bio: $('bioInput').value,
-                avatar: $('avatarInput').value,
-                fontFamily: $('fontFamily').value,
-                emojiLeft: $('emojiLeft').value,
-                emojiRight: $('emojiRight').value,
-                emoji3d: $('emoji3d').checked,
-                nameGradient: $('nameGradient').value || ef.gradient,
-                nameGlow: $('nameGlow').value || ef.glow,
-                nameNeon: ef.neon,
-                neonColor: $('neonColor').value || ef.neonColor || '#3B82F6',
-                neonSize: parseInt($('neonSize').value) || 10,
-                showBadge: $('showBadge').checked,
-                badgeIcon: $('badgeIcon').value || '✓',
-                badgeColor: $('badgeColor').value || 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
-                cardOpacity: parseInt($('cardOpacity').value) / 100,
-                cardBlur: parseInt($('cardBlur').value) || 20,
-                bgColor: $('bgColor').value || '#0B0F17',
-                bgImage: $('bgImage').value,
-                bgVideo: $('bgVideo').value,
-                particles: $('particlesToggle').checked,
-                particleColor: $('particleColor').value || 'rgba(59,130,246,0.3)',
-                particleCount: parseInt($('particleCount').value) || 40,
-                links: currentLinks,
-                btnStyle: $('btnStyle').value || 'rounded-full',
-                btnGlow: $('btnGlow').checked,
-                btnShimmer: $('btnShimmer').checked,
-                btnBgColor: $('btnBgColor').value,
-                btnBorderColor: $('btnBorderColor').value,
-                btnHoverColor: $('btnHoverColor').value,
-                btnHoverBorder: $('btnHoverBorder').value,
-                musicUrl: $('musicUrl').value,
-                musicTitle: $('musicTitleInput').value,
-                musicArtist: $('musicArtist').value,
-                musicCover: $('musicCover').value,
-                musicAutoplay: $('musicAutoplay').checked,
-                musicOpacity: parseInt($('musicOpacity').value) / 100,
-                musicBlur: parseInt($('musicBlur').value) || 10,
-                _selectedEffect: selectedEffect
-            };
-        }
-
-        // ============================================================
-        // PREVIEW (postMessage)
-        // ============================================================
-        let pushTimer = null;
-
-        function pushPreview() {
-            clearTimeout(pushTimer);
-            pushTimer = setTimeout(() => {
-                const payload = collectFormData();
-                if (previewReady) {
-                    previewFrame.contentWindow.postMessage({ type: 'profile-preview', payload }, '*');
-                } else {
-                    pendingPreview = payload;
-                }
-            }, 80);
-        }
-
-        window.addEventListener('message', (ev) => {
-            if (ev.data && ev.data.type === 'preview-ready') {
-                previewReady = true;
-                if (pendingPreview) {
-                    previewFrame.contentWindow.postMessage({ type: 'profile-preview', payload: pendingPreview }, '*');
-                    pendingPreview = null;
-                }
-            }
-        });
-
-        $('editPane').addEventListener('input', pushPreview);
-        $('editPane').addEventListener('change', pushPreview);
-
-        // ============================================================
-        // RENDER LINKS (Sortable)
-        // ============================================================
-        function renderLinks() {
-            const container = $('linksList');
-            container.innerHTML = '';
-            currentLinks.forEach((l, i) => {
-                const row = document.createElement('div');
-                row.className = 'link-item';
-                row.dataset.index = i;
-
-                const handle = document.createElement('span');
-                handle.className = 'drag-handle';
-                handle.textContent = '⋮⋮';
-
-                const iconInput = document.createElement('input');
-                iconInput.type = 'text';
-                iconInput.placeholder = '🔗';
-                iconInput.style.width = '44px';
-                iconInput.value = l.icon || '🔗';
-                iconInput.oninput = () => { currentLinks[i].icon = iconInput.value;
-                    pushPreview(); };
-
-                const titleInput = document.createElement('input');
-                titleInput.type = 'text';
-                titleInput.placeholder = 'Başlık';
-                titleInput.value = l.title || '';
-                titleInput.oninput = () => { currentLinks[i].title = titleInput.value;
-                    pushPreview(); };
-
-                const urlInput = document.createElement('input');
-                urlInput.type = 'text';
-                urlInput.placeholder = 'URL';
-                urlInput.value = l.url || '';
-                urlInput.oninput = () => { currentLinks[i].url = urlInput.value;
-                    pushPreview(); };
-
-                const stats = document.createElement('span');
-                stats.className = 'link-stats';
-                stats.textContent = '🖱️ ' + (l.clicks || 0);
-
-                const delBtn = document.createElement('button');
-                delBtn.className = 'del-link';
-                delBtn.textContent = '✕';
-                delBtn.onclick = () => { currentLinks.splice(i, 1);
-                    renderLinks();
-                    pushPreview(); };
-
-                row.append(handle, iconInput, titleInput, urlInput, stats, delBtn);
-                container.appendChild(row);
-            });
-
-            if (window._sortable) window._sortable.destroy();
-            window._sortable = new Sortable(container, {
-                handle: '.drag-handle',
-                animation: 150,
-                onEnd: (ev) => {
-                    const items = Array.from(container.children);
-                    const newOrder = items.map(el => parseInt(el.dataset.index));
-                    const reordered = newOrder.map(i => currentLinks[i]);
-                    currentLinks = reordered;
-                    renderLinks();
-                    pushPreview();
-                }
-            });
-        }
-
-        // ============================================================
-        // ADD LINK
-        // ============================================================
-        $('addLinkBtn').addEventListener('click', () => {
-            currentLinks.push({ icon: '🔗', title: 'Yeni Link', url: 'https://', clicks: 0 });
-            renderLinks();
-            pushPreview();
-        });
-
-        // ============================================================
-        // TEMPLATE BUTTONS
-        // ============================================================
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('tpl-btn')) {
-                const tpl = TEMPLATES[e.target.dataset.tpl];
-                if (tpl) {
-                    currentLinks.push({ icon: tpl.icon, title: tpl.title, url: tpl.url, clicks: 0 });
-                    renderLinks();
-                    pushPreview();
-                    showMsg('✅ ' + tpl.title + ' linki eklendi!', 'success');
-                }
-            }
-        });
-
-        // ============================================================
-        // EFFECT BUTTONS
-        // ============================================================
-        document.querySelectorAll('.effect-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.effect-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                selectedEffect = btn.dataset.effect;
-                pushPreview();
-                showMsg('🎨 Efekt uygulandı!', 'success');
-            });
-        });
-
-        // ============================================================
-        // THEME PRESETS
-        // ============================================================
-        document.querySelectorAll('.preset-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const theme = THEMES[btn.dataset.theme];
-                if (!theme) return;
-                Object.keys(theme).forEach(key => {
-                    const el = document.getElementById(key);
-                    if (el) {
-                        if (el.type === 'checkbox') el.checked = theme[key] !== false;
-                        else if (el.type === 'range') el.value = theme[key];
-                        else el.value = theme[key];
-                    }
-                });
-                if (theme.nameNeon !== undefined) {
-                    const effectKey = theme.nameNeon ? 'neon-blue' : 'default';
-                    document.querySelectorAll('.effect-btn').forEach(b => {
-                        b.classList.toggle('active', b.dataset.effect === effectKey);
-                    });
-                    selectedEffect = effectKey;
-                }
-                $('cov').textContent = Math.round((theme.cardOpacity || 0.8) * 100) + '%';
-                $('cbv').textContent = (theme.cardBlur || 20) + 'px';
-                $('pv').textContent = theme.particleCount || 40;
-                $('ns').textContent = (theme.neonSize || 10) + 'px';
-                if (theme.fontFamily) $('fontFamily').value = theme.fontFamily;
-                pushPreview();
-                showMsg('🎨 Tema uygulandı!', 'success');
-            });
-        });
-
-        // ============================================================
-        // SAVE FUNCTIONS
-        // ============================================================
-        function saveFields(fields, okText) {
-            db.collection('users').doc(uid).set(fields, { merge: true })
-                .then(() => { showMsg(okText, 'success'); })
-                .catch(err => {
-                    console.error('Save error:', err);
-                    showMsg('Kaydedilemedi: ' + (err.code || err.message), 'error');
-                });
-        }
-
-        $('saveProfileBtn').addEventListener('click', () => {
-            const d = collectFormData();
-            saveFields({
-                name: d.name,
-                bio: d.bio,
-                avatar: d.avatar,
-                fontFamily: d.fontFamily,
-                emojiLeft: d.emojiLeft,
-                emojiRight: d.emojiRight,
-                emoji3d: d.emoji3d,
-                nameGradient: d.nameGradient,
-                nameGlow: d.nameGlow,
-                nameNeon: d.nameNeon,
-                neonColor: d.neonColor,
-                neonSize: d.neonSize,
-                showBadge: d.showBadge,
-                badgeIcon: d.badgeIcon,
-                badgeColor: d.badgeColor,
-                cardOpacity: d.cardOpacity,
-                cardBlur: d.cardBlur,
-                _selectedEffect: selectedEffect
-            }, '✅ Profil kaydedildi!');
-        });
-
-        $('saveLinksBtn').addEventListener('click', () => {
-            const d = collectFormData();
-            saveFields({
-                links: currentLinks,
-                btnStyle: d.btnStyle,
-                btnGlow: d.btnGlow,
-                btnShimmer: d.btnShimmer,
-                btnBgColor: d.btnBgColor,
-                btnBorderColor: d.btnBorderColor,
-                btnHoverColor: d.btnHoverColor,
-                btnHoverBorder: d.btnHoverBorder
-            }, '✅ Linkler kaydedildi!');
-        });
-
-        $('saveBackgroundBtn').addEventListener('click', () => {
-            const d = collectFormData();
-            saveFields({
-                bgColor: d.bgColor,
-                bgImage: d.bgImage,
-                bgVideo: d.bgVideo,
-                particles: d.particles,
-                particleColor: d.particleColor,
-                particleCount: d.particleCount
-            }, '✅ Arka plan kaydedildi!');
-        });
-
-        $('saveMusicBtn').addEventListener('click', () => {
-            const d = collectFormData();
-            saveFields({
-                musicUrl: d.musicUrl,
-                musicTitle: d.musicTitle,
-                musicArtist: d.musicArtist,
-                musicCover: d.musicCover,
-                musicAutoplay: d.musicAutoplay,
-                musicOpacity: d.musicOpacity,
-                musicBlur: d.musicBlur
-            }, '✅ Müzik kaydedildi!');
-        });
-
-        // ============================================================
-        // FILE UPLOAD (Cloudinary)
-        // ============================================================
-        async function uploadFile(file, statusEl, targetInput) {
-            if (!file) return;
-
-            if (CLOUDINARY_CLOUD_NAME === 'demo' || CLOUDINARY_UPLOAD_PRESET === 'ml_default') {
-                statusEl.textContent = '⚠️ Cloudinary ayarlarını yap!';
-                statusEl.className = 'upload-status error';
-                showMsg('⚠️ Lütfen Cloudinary ayarlarını admin.html içinde güncelle!', 'error');
-                return;
-            }
-
-            if (file.size > 5 * 1024 * 1024) {
-                statusEl.textContent = '❌ 5MB max';
-                statusEl.className = 'upload-status error';
-                showMsg('Dosya boyutu 5MB\'dan büyük!', 'error');
-                return;
-            }
-
-            statusEl.textContent = '⏳ Yükleniyor...';
-            statusEl.className = 'upload-status loading';
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const msg = document.getElementById('loginMsg');
+            btn.disabled = true;
             try {
-                const res = await fetch(
-                    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, {
-                        method: 'POST',
-                        body: formData
-                    }
+                await auth.signInWithEmailAndPassword(
+                    document.getElementById('loginEmail').value.trim(),
+                    document.getElementById('loginPassword').value
                 );
-                const data = await res.json();
-
-                if (data.secure_url) {
-                    document.getElementById(targetInput).value = data.secure_url;
-                    statusEl.textContent = '✅';
-                    statusEl.className = 'upload-status done';
-                    showMsg('✅ Resim yüklendi!', 'success');
-                    pushPreview();
-                } else {
-                    statusEl.textContent = '❌';
-                    statusEl.className = 'upload-status error';
-                    showMsg('Cloudinary hatası: ' + (data.error?.message || 'Bilinmeyen hata'), 'error');
-                    console.error('Cloudinary error:', data);
-                }
+                window.location.href = '/admin.html';
             } catch (err) {
-                statusEl.textContent = '❌';
-                statusEl.className = 'upload-status error';
-                showMsg('Yükleme başarısız: ' + err.message, 'error');
-                console.error('Upload error:', err);
-            }
-        }
-
-        $('avatarUpload').addEventListener('change', (e) => {
-            uploadFile(e.target.files[0], $('avatarStatus'), 'avatarInput');
-            e.target.value = '';
-        });
-
-        $('bgUpload').addEventListener('change', (e) => {
-            uploadFile(e.target.files[0], $('bgStatus'), 'bgImage');
-            e.target.value = '';
-        });
-
-        // ============================================================
-        // MUSIC TEST BUTTON
-        // ============================================================
-        $('testMusicBtn').addEventListener('click', () => {
-            const url = $('musicUrl').value.trim();
-            if (!url) {
-                showMsg('Lütfen önce bir MP3 URL\'si gir.', 'error');
-                return;
-            }
-            const audio = new Audio(url);
-            audio.volume = 0.5;
-            audio.play()
-                .then(() => {
-                    showMsg('✅ Müzik çalıyor!', 'success');
-                    setTimeout(() => audio.pause(), 5000);
-                })
-                .catch(err => {
-                    showMsg('❌ Müzik çalınamadı: ' + err.message, 'error');
-                });
-        });
-
-        // ============================================================
-        // OTHER ACTIONS
-        // ============================================================
-        $('urlChip').addEventListener('click', () => {
-            navigator.clipboard.writeText(window.location.origin + '/' + username)
-                .then(() => showMsg('🔗 Link kopyalandı!', 'success'));
-        });
-
-        $('logoutBtn').addEventListener('click', () => auth.signOut().then(() => window.location.href = '/login.html'));
-
-        $('resetPassBtn').addEventListener('click', () => {
-            const email = auth.currentUser?.email;
-            if (!email) return;
-            auth.sendPasswordResetEmail(email)
-                .then(() => showMsg('Şifre sıfırlama e-postası gönderildi.', 'success'))
-                .catch(err => showMsg('Gönderilemedi: ' + (err.code || err.message), 'error'));
-        });
-
-        // ============================================================
-        // CHANGE PASSWORD
-        // ============================================================
-        $('changePassBtn').addEventListener('click', async () => {
-            const current = $('currentPassInput').value;
-            const next = $('newPassInput').value;
-            if (!current || next.length < 6) {
-                showMsg('Mevcut şifreni gir ve en az 6 karakterlik yeni şifre seç.', 'error');
-                return;
-            }
-            try {
-                await reauthenticate(current);
-                await auth.currentUser.updatePassword(next);
-                $('currentPassInput').value = '';
-                $('newPassInput').value = '';
-                showMsg('🔑 Şifren güncellendi!', 'success');
-            } catch (err) {
-                showMsg(explainAuthError(err), 'error');
-            }
-        });
-
-        // ============================================================
-        // CHANGE USERNAME
-        // ============================================================
-        const RESERVED_USERNAMES = ['admin', 'login', 'register', 'index', 'api', 'www', 'app', 'static', 'assets',
-            'favicon.ico', 'null', 'undefined', 'profile', 'preview', 'discover'
-        ];
-
-        const newUsernameInput = $('newUsernameInput');
-        const newUsernameHint = $('newUsernameHint');
-        let newUsernameValid = false;
-        let usernameCheckTimer = null;
-
-        newUsernameInput.addEventListener('input', () => {
-            newUsernameInput.value = newUsernameInput.value.replace(/[^a-zA-Z0-9_]/g, '');
-            newUsernameValid = false;
-            clearTimeout(usernameCheckTimer);
-            const v = newUsernameInput.value.trim();
-            if (!v) { newUsernameHint.textContent = '';
-                newUsernameHint.className = ''; return; }
-            if (v.length < 3) {
-                newUsernameHint.textContent = 'En az 3 karakter (harf, rakam, _)';
-                newUsernameHint.className = 'hint';
-                return;
-            }
-            if (v.toLowerCase() === username.toLowerCase()) {
-                newUsernameHint.textContent = 'Bu zaten mevcut kullanıcı adın';
-                newUsernameHint.className = 'hint bad';
-                return;
-            }
-            if (RESERVED_USERNAMES.includes(v.toLowerCase())) {
-                newUsernameHint.textContent = 'Bu kullanıcı adı ayrılmış';
-                newUsernameHint.className = 'hint bad';
-                return;
-            }
-            newUsernameHint.textContent = 'Kontrol ediliyor...';
-            newUsernameHint.className = 'hint checking';
-            usernameCheckTimer = setTimeout(() => {
-                db.collection('usernames').doc(v.toLowerCase()).get().then(doc => {
-                    if (doc.exists) {
-                        newUsernameHint.textContent = '❌ Bu kullanıcı adı alınmış';
-                        newUsernameHint.className = 'hint bad';
-                        newUsernameValid = false;
-                    } else {
-                        newUsernameHint.textContent = '✓ ' + v + ' kullanılabilir';
-                        newUsernameHint.className = 'hint ok';
-                        newUsernameValid = true;
-                    }
-                }).catch(() => { newUsernameHint.textContent = ''; });
-            }, 450);
-        });
-
-        $('changeUsernameBtn').addEventListener('click', async () => {
-            const newUsername = newUsernameInput.value.trim();
-            const newLower = newUsername.toLowerCase();
-            if (newUsername.length < 3 || RESERVED_USERNAMES.includes(newLower) || newLower === username.toLowerCase()) {
-                showMsg('Geçerli, farklı bir kullanıcı adı gir.', 'error');
-                return;
-            }
-            if (!newUsernameValid) {
-                showMsg('Kullanıcı adının müsait olduğunu doğrula.', 'error');
-                return;
-            }
-            const btn = $('changeUsernameBtn');
-            btn.disabled = true;
-            const oldLower = username.toLowerCase();
-            try {
-                await db.runTransaction(async (tx) => {
-                    const newRef = db.collection('usernames').doc(newLower);
-                    const newSnap = await tx.get(newRef);
-                    if (newSnap.exists) throw new Error('taken');
-                    tx.set(newRef, { uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                    tx.update(db.collection('users').doc(uid), { username: newUsername, usernameLower: newLower });
-                    tx.delete(db.collection('usernames').doc(oldLower));
-                });
-                username = newUsername;
-                $('urlChip').textContent = window.location.host + '/' + username;
-                $('previewLink').href = '/' + username;
-                $('currentUsernameLabel').textContent = '@' + username;
-                newUsernameInput.value = '';
-                newUsernameHint.textContent = '';
-                showMsg('✅ Kullanıcı adın güncellendi!', 'success');
-            } catch (err) {
-                showMsg(err.message === 'taken' ? 'Bu kullanıcı adı az önce alındı.' : 'Değiştirilemedi: ' + (err.code || err
-                    .message), 'error');
-            }
-            btn.disabled = false;
-        });
-
-        // ============================================================
-        // DELETE ACCOUNT
-        // ============================================================
-        $('deleteAccountBtn').addEventListener('click', async () => {
-            const password = $('deletePassInput').value;
-            if (!password) { showMsg('Onaylamak için şifreni gir.', 'error'); return; }
-            if (!confirm('Hesabını ve bio sayfanı KALICI olarak silmek istediğine emin misin?')) return;
-            const btn = $('deleteAccountBtn');
-            btn.disabled = true;
-            try {
-                await reauthenticate(password);
-                const batch = db.batch();
-                batch.delete(db.collection('usernames').doc(username.toLowerCase()));
-                batch.delete(db.collection('users').doc(uid).collection('private').doc('data'));
-                batch.delete(db.collection('users').doc(uid));
-                await batch.commit();
-                await auth.currentUser.delete();
-                window.location.href = '/';
-            } catch (err) {
-                showMsg(explainAuthError(err), 'error');
+                showMsg(msg, explainAuthError(err), 'error');
                 btn.disabled = false;
             }
         });
 
         // ============================================================
-        // RANGE LABEL UPDATES
+        // FORGOT
         // ============================================================
-        $('cardOpacity').addEventListener('input', function() { $('cov').textContent = this.value + '%'; });
-        $('cardBlur').addEventListener('input', function() { $('cbv').textContent = this.value + 'px'; });
-        $('particleCount').addEventListener('input', function() { $('pv').textContent = this.value; });
-        $('neonSize').addEventListener('input', function() { $('ns').textContent = this.value + 'px'; });
-        $('musicOpacity').addEventListener('input', function() { $('mov').textContent = this.value + '%'; });
-        $('musicBlur').addEventListener('input', function() { $('mbv').textContent = this.value + 'px'; });
-
-        // ============================================================
-        // MOBILE TABS
-        // ============================================================
-        const tabEdit = $('tabEdit');
-        const tabPreview = $('tabPreview');
-        const editPane = $('editPane');
-        const previewPane = $('previewPane');
-
-        tabEdit.addEventListener('click', () => {
-            tabEdit.classList.add('active');
-            tabPreview.classList.remove('active');
-            editPane.classList.remove('tab-hidden');
-            previewPane.classList.add('tab-hidden');
-        });
-        tabPreview.addEventListener('click', () => {
-            tabPreview.classList.add('active');
-            tabEdit.classList.remove('active');
-            previewPane.classList.remove('tab-hidden');
-            editPane.classList.add('tab-hidden');
-            pushPreview();
+        document.getElementById('forgotLink').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const msg = document.getElementById('loginMsg');
+            if (!email) { showMsg(msg, 'Önce e-posta adresini gir.', 'error'); return; }
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showMsg(msg, 'Şifre sıfırlama bağlantısı gönderildi (spam klasörünü kontrol et).', 'success');
+            } catch (err) {
+                showMsg(msg, explainAuthError(err), 'error');
+            }
         });
 
-        if (window.innerWidth <= 900) previewPane.classList.add('tab-hidden');
+        // ============================================================
+        // REGISTER
+        // ============================================================
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = usernameInput.value.trim();
+            const usernameLower = username.toLowerCase();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const btn = document.getElementById('registerBtn');
+            const msg = document.getElementById('registerMsg');
+
+            if (username.length < 3 || RESERVED.includes(usernameLower)) {
+                showMsg(msg, 'Geçerli bir kullanıcı adı gir.', 'error');
+                return;
+            }
+            if (!usernameValid) {
+                showMsg(msg, 'Lütfen kullanıcı adının müsait olduğunu doğrula.', 'error');
+                return;
+            }
+            if (password.length < 6) {
+                showMsg(msg, 'Şifre en az 6 karakter olmalı.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            showMsg(msg, 'Hesap oluşturuluyor...', 'success');
+
+            try {
+                const unameCheck = await db.collection('usernames').doc(usernameLower).get();
+                if (unameCheck.exists) {
+                    showMsg(msg, 'Bu kullanıcı adı az önce alındı.', 'error');
+                    btn.disabled = false;
+                    return;
+                }
+
+                let cred;
+                try {
+                    cred = await auth.createUserWithEmailAndPassword(email, password);
+                } catch (authErr) {
+                    showMsg(msg, explainAuthError(authErr), 'error');
+                    btn.disabled = false;
+                    return;
+                }
+
+                const uid = cred.user.uid;
+
+                await db.runTransaction(async (tx) => {
+                    const unameRef = db.collection('usernames').doc(usernameLower);
+                    const unameSnap = await tx.get(unameRef);
+                    if (unameSnap.exists) throw new Error('taken');
+                    tx.set(unameRef, { uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    tx.set(db.collection('users').doc(uid).collection('private').doc('data'), { email });
+                    tx.set(db.collection('users').doc(uid), {
+                        uid,
+                        username,
+                        usernameLower,
+                        name: username,
+                        bio: '',
+                        avatar: '',
+                        emailVerified: false,
+                        emojiLeft: '',
+                        emojiRight: '',
+                        emoji3d: true,
+                        nameGradient: 'linear-gradient(135deg, #F9FAFB, #9CA3AF)',
+                        nameGlow: 'none',
+                        nameNeon: false,
+                        neonColor: '#3B82F6',
+                        neonSize: 10,
+                        showBadge: true,
+                        badgeIcon: '✓',
+                        badgeColor: 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
+                        cardOpacity: 0.8,
+                        cardBlur: 20,
+                        bgColor: '#0B0F17',
+                        bgImage: '',
+                        bgVideo: '',
+                        particles: true,
+                        particleColor: 'rgba(59,130,246,0.3)',
+                        particleCount: 40,
+                        links: [],
+                        btnStyle: 'rounded-full',
+                        btnGlow: true,
+                        btnShimmer: true,
+                        btnBgColor: '',
+                        btnBorderColor: '',
+                        btnHoverColor: '',
+                        btnHoverBorder: '',
+                        musicUrl: '',
+                        musicTitle: '',
+                        musicArtist: '',
+                        musicCover: '',
+                        musicAutoplay: true,
+                        musicOpacity: 0.9,
+                        musicBlur: 10,
+                        views: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+
+                try {
+                    await cred.user.sendEmailVerification();
+                    showMsg(msg, 'Hesap oluşturuldu! Doğrulama e-postası gönderildi, yönlendiriliyorsun...',
+                    'success');
+                } catch (mailErr) {
+                    showMsg(msg, 'Hesap oluştu ama doğrulama e-postası gönderilemedi. Yönlendiriliyorsun...',
+                        'success');
+                }
+
+                setTimeout(() => { window.location.href = '/admin.html'; }, 1500);
+
+            } catch (err) {
+                if (err.message === 'taken') {
+                    showMsg(msg, 'Bu kullanıcı adı az önce alındı.', 'error');
+                } else if (err.code === 'permission-denied') {
+                    showMsg(msg, 'Veritabanı izin hatası: Firestore güvenlik kurallarını yayınla.', 'error');
+                } else {
+                    showMsg(msg, 'Kayıt başarısız: ' + (err.code || err.message), 'error');
+                }
+                btn.disabled = false;
+                try { await auth.currentUser?.delete(); } catch (e) {}
+            }
+        });
     </script>
 </body>
 </html>
