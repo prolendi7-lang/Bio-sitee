@@ -1,6 +1,6 @@
 /* ============================================================
    render.js — Tek kaynak profil render motoru
-   TÜM İKONLAR 3D EFEKTLİ!
+   GERÇEK MARKA LOGOLARI + 3D EFEKT!
    ============================================================ */
 
 // ============================================================
@@ -51,25 +51,87 @@ function safeFont(name) {
 }
 
 // ============================================================
-// 3D LOGO EFEKTİ - TÜM İKONLAR İÇİN!
+// MARKA LOGO EŞLEŞTİRMESİ (Gerçek logolar!)
 // ============================================================
-function apply3DEffect(element) {
-    // Tüm ikonlara 3D efekti uygula!
-    element.style.textShadow = '0 4px 8px rgba(0,0,0,0.5), 0 0 25px rgba(59,130,246,0.2)';
-    element.style.transform = 'perspective(200px) rotateY(-6deg) scale(1.15)';
-    element.style.display = 'inline-block';
-    element.style.transition = 'all 0.3s ease';
-    element.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))';
-    
-    // Hover efekti - daha da büyüsün!
-    element.onmouseenter = () => {
-        element.style.transform = 'perspective(200px) rotateY(-6deg) scale(1.4)';
-        element.style.textShadow = '0 4px 12px rgba(0,0,0,0.6), 0 0 40px rgba(59,130,246,0.4)';
+const BRAND_LOGOS = {
+    'telegram': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/telegram.svg',
+    'discord': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/discord.svg',
+    'youtube': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtube.svg',
+    'instagram': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/instagram.svg',
+    'tiktok': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/tiktok.svg',
+    'twitch': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/twitch.svg',
+    'steam': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/steam.svg',
+    'spotify': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/spotify.svg',
+    'github': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg',
+    'x': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg',
+    'website': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/internet.svg',
+    'default': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/link.svg'
+};
+
+// ============================================================
+// LOGO İKON OLUŞTURUCU (Gerçek logo SVG veya emoji)
+// ============================================================
+function createLogoIcon(icon, title) {
+    const span = document.createElement('span');
+    span.className = 'link-icon';
+    span.style.display = 'inline-flex';
+    span.style.alignItems = 'center';
+    span.style.justifyContent = 'center';
+    span.style.width = '32px';
+    span.style.height = '32px';
+    span.style.flexShrink = '0';
+
+    // Eğer icon bir emoji ise (📱, 🎮 gibi) direkt göster
+    if (icon && /[\u{1F000}-\u{1FFFF}]/u.test(icon)) {
+        span.textContent = icon;
+        span.style.fontSize = '24px';
+        span.style.textShadow = '0 4px 8px rgba(0,0,0,0.4), 0 0 20px rgba(59,130,246,0.2)';
+        span.style.transform = 'perspective(200px) rotateY(-6deg) scale(1.1)';
+        span.style.transition = 'all 0.3s ease';
+        span.style.display = 'flex';
+        span.style.alignItems = 'center';
+        span.style.justifyContent = 'center';
+        return span;
+    }
+
+    // Marka logosu ara
+    const key = (icon || title || '').toLowerCase().trim();
+    let logoUrl = BRAND_LOGOS['default'];
+
+    // Eşleşme kontrolü
+    for (const [brand, url] of Object.entries(BRAND_LOGOS)) {
+        if (key.includes(brand) || (icon && icon.toLowerCase().includes(brand))) {
+            logoUrl = url;
+            break;
+        }
+    }
+
+    // SVG logosu oluştur
+    const img = document.createElement('img');
+    img.src = logoUrl;
+    img.alt = title || 'logo';
+    img.style.width = '28px';
+    img.style.height = '28px';
+    img.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 15px rgba(59,130,246,0.15))';
+    img.style.transition = 'all 0.3s ease';
+    img.style.transform = 'perspective(200px) rotateY(-4deg) scale(1)';
+    img.style.display = 'block';
+    img.style.objectFit = 'contain';
+    img.style.background = 'transparent';
+    img.loading = 'lazy';
+
+    // Hover efekti
+    img.onmouseenter = () => {
+        img.style.transform = 'perspective(200px) rotateY(-4deg) scale(1.2)';
+        img.style.filter = 'drop-shadow(0 4px 12px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(59,130,246,0.3))';
     };
-    element.onmouseleave = () => {
-        element.style.transform = 'perspective(200px) rotateY(-6deg) scale(1.15)';
-        element.style.textShadow = '0 4px 8px rgba(0,0,0,0.5), 0 0 25px rgba(59,130,246,0.2)';
+    img.onmouseleave = () => {
+        img.style.transform = 'perspective(200px) rotateY(-4deg) scale(1)';
+        img.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 15px rgba(59,130,246,0.15))';
     };
+
+    span.appendChild(img);
+    return span;
 }
 
 // ============================================================
@@ -178,7 +240,7 @@ function applyProfileData(d) {
         }
     }
 
-    // ---- LINKS (TÜM İKONLAR 3D!) ----
+    // ---- LINKS (GERÇEK LOGOLAR + 3D) ----
     const lc = document.getElementById('linksContainer');
     lc.innerHTML = '';
     const btnGlow = d.btnGlow !== false;
@@ -219,11 +281,8 @@ function applyProfileData(d) {
                 };
             }
 
-            const iconSpan = document.createElement('span');
-            iconSpan.className = 'link-icon';
-            iconSpan.textContent = link.icon || '🔗';
-            // TÜM İKONLARA 3D EFEKTİ UYGULA!
-            apply3DEffect(iconSpan);
+            // Logo oluştur (gerçek logo veya emoji)
+            const iconSpan = createLogoIcon(link.icon, link.title);
 
             const titleSpan = document.createElement('span');
             titleSpan.className = 'link-title';
