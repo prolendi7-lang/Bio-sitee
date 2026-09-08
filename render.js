@@ -1,5 +1,4 @@
 function applyProfileData(data) {
-    // ========== TEMEL BİLGİLER ==========
     const avatar = document.getElementById('avatar');
     if (avatar) avatar.src = data.avatar || 'https://i.imgur.com/6VBx3io.png';
 
@@ -57,7 +56,6 @@ function applyProfileData(data) {
         verifiedLabel.classList.add('hidden');
     }
 
-    // ========== LİNKLER ==========
     const linksContainer = document.getElementById('linksContainer');
     if (linksContainer) {
         linksContainer.innerHTML = '';
@@ -70,39 +68,109 @@ function applyProfileData(data) {
 
                 const shape = data.btnShape || 'yuvarlak';
                 let borderRadius = '9999px';
-                if (shape === 'kare') borderRadius = '0';
-                else if (shape === 'dikdortgen') borderRadius = '8px';
-                else if (shape === 'yumusak') borderRadius = '20px';
+                let padding = '14px 20px';
+                let width = '100%';
+                let justifyContent = 'space-between';
+
+                switch(shape) {
+                    case 'yuvarlak':
+                        borderRadius = '9999px';
+                        padding = '14px 20px';
+                        break;
+                    case 'kucuk-yuvarlak':
+                        borderRadius = '9999px';
+                        padding = '8px 16px';
+                        width = 'auto';
+                        justifyContent = 'center';
+                        break;
+                    case 'dikdortgen':
+                        borderRadius = '12px';
+                        padding = '14px 20px';
+                        break;
+                    case 'ince-dikdortgen':
+                        borderRadius = '8px';
+                        padding = '8px 16px';
+                        width = 'auto';
+                        justifyContent = 'center';
+                        break;
+                    case 'kare':
+                        borderRadius = '0';
+                        padding = '14px';
+                        width = '100%';
+                        break;
+                    case 'kucuk-kare':
+                        borderRadius = '0';
+                        padding = '8px';
+                        width = 'auto';
+                        justifyContent = 'center';
+                        break;
+                    default:
+                        borderRadius = '9999px';
+                        padding = '14px 20px';
+                }
                 a.style.borderRadius = borderRadius;
+                a.style.padding = padding;
+                a.style.width = width;
+                a.style.justifyContent = justifyContent;
 
                 const opacity = data.btnOpacity !== undefined ? parseInt(data.btnOpacity) : 100;
                 if (opacity === 0) {
                     a.style.display = 'none';
                 } else {
                     a.style.display = 'flex';
-                    a.style.opacity = opacity / 100;
+                    const bgColor = data.btnBgColor || 'rgba(255,255,255,0.04)';
+                    const borderColor = data.btnBorderColor || 'rgba(255,255,255,0.08)';
+                    if (bgColor.startsWith('#')) {
+                        const rgb = hexToRgb(bgColor);
+                        a.style.background = `rgba(${rgb}, ${opacity/100})`;
+                    } else if (bgColor.startsWith('rgba')) {
+                        const parts = bgColor.match(/[\d.]+/g);
+                        if (parts && parts.length >= 3) {
+                            a.style.background = `rgba(${parts[0]},${parts[1]},${parts[2]},${opacity/100})`;
+                        } else {
+                            a.style.background = `rgba(255,255,255,${opacity/100 * 0.04})`;
+                        }
+                    } else {
+                        a.style.background = `rgba(255,255,255,${opacity/100 * 0.04})`;
+                    }
+                    
+                    if (borderColor.startsWith('#')) {
+                        const rgb = hexToRgb(borderColor);
+                        a.style.borderColor = `rgba(${rgb}, ${opacity/100})`;
+                    } else if (borderColor.startsWith('rgba')) {
+                        const parts = borderColor.match(/[\d.]+/g);
+                        if (parts && parts.length >= 3) {
+                            a.style.borderColor = `rgba(${parts[0]},${parts[1]},${parts[2]},${opacity/100})`;
+                        } else {
+                            a.style.borderColor = `rgba(255,255,255,${opacity/100 * 0.08})`;
+                        }
+                    } else {
+                        a.style.borderColor = `rgba(255,255,255,${opacity/100 * 0.08})`;
+                    }
                 }
 
-                if (data.btnBgColor) a.style.background = data.btnBgColor;
-                if (data.btnBorderColor) a.style.borderColor = data.btnBorderColor;
                 if (data.btnHoverColor) a.style.setProperty('--hover-bg', data.btnHoverColor);
                 if (data.btnHoverBorder) a.style.setProperty('--hover-border', data.btnHoverBorder);
 
-                a.classList.toggle('glow-border', data.btnGlow !== false);
-                a.classList.toggle('glow-active', data.btnShimmer !== false);
+                a.classList.toggle('glow-border', data.btnGlow !== false && opacity > 0);
+                a.classList.toggle('glow-active', data.btnShimmer !== false && opacity > 0);
 
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'link-icon';
+                iconSpan.style.opacity = '1';
+                iconSpan.style.filter = 'none';
                 iconSpan.innerHTML = getPlatformLogo(link.url || '', link.title || '');
                 a.appendChild(iconSpan);
 
                 const titleSpan = document.createElement('span');
                 titleSpan.className = 'link-title';
+                titleSpan.style.opacity = '1';
                 titleSpan.textContent = link.title || 'Link';
                 a.appendChild(titleSpan);
 
                 const arrowSpan = document.createElement('span');
                 arrowSpan.className = 'link-arrow';
+                arrowSpan.style.opacity = '1';
                 arrowSpan.textContent = '→';
                 a.appendChild(arrowSpan);
 
@@ -111,7 +179,6 @@ function applyProfileData(data) {
         }
     }
 
-    // ========== MÜZİK ÇALAR ==========
     const musicPlayer = document.getElementById('musicPlayer');
     const audio = document.getElementById('bgMusic');
     const joinOverlay = document.getElementById('joinOverlay');
@@ -126,9 +193,20 @@ function applyProfileData(data) {
             const playBtn = document.getElementById('playBtn');
             if (playBtn) playBtn.style.display = 'none';
 
-            musicPlayer.style.opacity = data.musicOpacity || 0.9;
-            musicPlayer.style.backdropFilter = `blur(${data.musicBlur || 10}px)`;
-            musicPlayer.style.webkitBackdropFilter = `blur(${data.musicBlur || 10}px)`;
+            const musicOpacity = data.musicOpacity !== undefined ? data.musicOpacity : 0.9;
+            const musicBlur = data.musicBlur !== undefined ? data.musicBlur : 10;
+            
+            musicPlayer.style.background = `rgba(17, 24, 39, ${musicOpacity})`;
+            if (musicBlur === 0) {
+                musicPlayer.style.backdropFilter = 'none';
+                musicPlayer.style.webkitBackdropFilter = 'none';
+            } else {
+                musicPlayer.style.backdropFilter = `blur(${musicBlur}px)`;
+                musicPlayer.style.webkitBackdropFilter = `blur(${musicBlur}px)`;
+            }
+            document.getElementById('musicTitle').style.opacity = '1';
+            document.getElementById('musicArtist').style.opacity = '1';
+            document.getElementById('musicCover').style.opacity = '1';
 
             audio.src = data.musicUrl;
             audio.load();
@@ -148,7 +226,6 @@ function applyProfileData(data) {
         }
     }
 
-    // ========== ARKA PLAN ==========
     if (data.bgColor) document.body.style.backgroundColor = data.bgColor;
     if (data.bgImage) {
         document.body.style.backgroundImage = `url(${data.bgImage})`;
@@ -171,7 +248,6 @@ function applyProfileData(data) {
         }
     }
 
-    // ========== PARTİKÜLLER ==========
     const particlesContainer = document.getElementById('particles');
     if (particlesContainer) {
         particlesContainer.innerHTML = '';
@@ -193,7 +269,6 @@ function applyProfileData(data) {
         }
     }
 
-    // ========== KART SAYDAMLIK VE BLUR ==========
     const card = document.querySelector('.profile-card');
     if (card) {
         const opacity = data.cardOpacity !== undefined ? data.cardOpacity : 0.8;
@@ -218,6 +293,16 @@ function applyProfileData(data) {
     if (viewCount && data.views !== undefined) {
         viewCount.textContent = data.views || 0;
     }
+}
+
+function hexToRgb(hex) {
+    if (!hex) return '255,255,255';
+    hex = hex.replace('#', '');
+    if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    const r = parseInt(hex.substring(0,2), 16);
+    const g = parseInt(hex.substring(2,4), 16);
+    const b = parseInt(hex.substring(4,6), 16);
+    return `${r},${g},${b}`;
 }
 
 function getPlatformLogo(url, title) {
