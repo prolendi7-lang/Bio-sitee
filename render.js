@@ -1,3 +1,7 @@
+// ============================================================
+// render.js – Tüm profil verilerini sayfaya uygular
+// ============================================================
+
 function applyProfileData(data) {
     // ========== TEMEL BİLGİLER ==========
     const avatar = document.getElementById('avatar');
@@ -52,9 +56,16 @@ function applyProfileData(data) {
         }
     }
 
+    // ===== DOĞRULAMA ETİKETİ (emailVerified + showVerifiedBadge) =====
     const verifiedLabel = document.getElementById('verifiedLabel');
     if (verifiedLabel) {
-        verifiedLabel.classList.add('hidden');
+        const show = data.showVerifiedBadge !== false && data.emailVerified === true;
+        if (show) {
+            verifiedLabel.classList.remove('hidden');
+            verifiedLabel.textContent = '✓ Doğrulanmış hesap';
+        } else {
+            verifiedLabel.classList.add('hidden');
+        }
     }
 
     // ========== LİNKLER ==========
@@ -68,116 +79,92 @@ function applyProfileData(data) {
                 a.target = '_blank';
                 a.className = 'link-btn';
 
-                // ---- BUTON ŞEKLİ ----
+                // ---- BUTON STİLİ (btnStyle) ----
+                if (data.btnStyle) {
+                    const styleMap = {
+                        'rounded-full': '9999px',
+                        'rounded-xl': '12px',
+                        'rounded-lg': '8px',
+                        'rounded-none': '0'
+                    };
+                    const radius = styleMap[data.btnStyle] || '9999px';
+                    a.style.borderRadius = radius;
+                }
+
+                // ---- BUTON ŞEKLİ (btnShape) ----
                 const shape = data.btnShape || 'yuvarlak';
-                let borderRadius = '9999px';
                 let padding = '14px 20px';
                 let width = '100%';
                 let justifyContent = 'space-between';
 
                 switch(shape) {
                     case 'yuvarlak':
-                        borderRadius = '9999px';
                         padding = '14px 20px';
                         break;
                     case 'kucuk-yuvarlak':
-                        borderRadius = '9999px';
                         padding = '8px 16px';
                         width = 'auto';
                         justifyContent = 'center';
                         break;
                     case 'dikdortgen':
-                        borderRadius = '12px';
                         padding = '14px 20px';
                         break;
                     case 'ince-dikdortgen':
-                        borderRadius = '8px';
                         padding = '8px 16px';
                         width = 'auto';
                         justifyContent = 'center';
                         break;
                     case 'kare':
-                        borderRadius = '0';
                         padding = '14px';
                         width = '100%';
                         break;
                     case 'kucuk-kare':
-                        borderRadius = '0';
                         padding = '8px';
                         width = 'auto';
                         justifyContent = 'center';
                         break;
                     default:
-                        borderRadius = '9999px';
                         padding = '14px 20px';
                 }
-                a.style.borderRadius = borderRadius;
                 a.style.padding = padding;
                 a.style.width = width;
                 a.style.justifyContent = justifyContent;
 
-                // ---- BUTON OPASİTESİ (ÇÖZÜM: display:none) ----
+                // ---- BUTON OPASİTESİ ----
                 const opacity = data.btnOpacity !== undefined ? parseInt(data.btnOpacity) : 100;
                 if (opacity === 0) {
-                    a.style.display = 'none';  // tamamen yok olur, yer kaplamaz
+                    a.style.display = 'none';
                 } else {
                     a.style.display = 'flex';
-                    // Arka plan ve border opaklığını ayarla, içindekiler hep opak
-                    const bgColor = data.btnBgColor || 'rgba(255,255,255,0.04)';
-                    const borderColor = data.btnBorderColor || 'rgba(255,255,255,0.08)';
-                    if (bgColor.startsWith('#')) {
-                        const rgb = hexToRgb(bgColor);
-                        a.style.background = `rgba(${rgb}, ${opacity/100})`;
-                    } else if (bgColor.startsWith('rgba')) {
-                        const parts = bgColor.match(/[\d.]+/g);
-                        if (parts && parts.length >= 3) {
-                            a.style.background = `rgba(${parts[0]},${parts[1]},${parts[2]},${opacity/100})`;
-                        } else {
-                            a.style.background = `rgba(255,255,255,${opacity/100 * 0.04})`;
-                        }
+                    a.style.opacity = opacity / 100;
+                    if (!data.btnBgColor && !data.btnBorderColor) {
+                        a.style.background = `rgba(255,255,255,${0.04 * opacity/100})`;
+                        a.style.borderColor = `rgba(255,255,255,${0.08 * opacity/100})`;
                     } else {
-                        a.style.background = `rgba(255,255,255,${opacity/100 * 0.04})`;
-                    }
-                    
-                    if (borderColor.startsWith('#')) {
-                        const rgb = hexToRgb(borderColor);
-                        a.style.borderColor = `rgba(${rgb}, ${opacity/100})`;
-                    } else if (borderColor.startsWith('rgba')) {
-                        const parts = borderColor.match(/[\d.]+/g);
-                        if (parts && parts.length >= 3) {
-                            a.style.borderColor = `rgba(${parts[0]},${parts[1]},${parts[2]},${opacity/100})`;
-                        } else {
-                            a.style.borderColor = `rgba(255,255,255,${opacity/100 * 0.08})`;
-                        }
-                    } else {
-                        a.style.borderColor = `rgba(255,255,255,${opacity/100 * 0.08})`;
+                        if (data.btnBgColor) a.style.background = data.btnBgColor;
+                        if (data.btnBorderColor) a.style.borderColor = data.btnBorderColor;
                     }
                 }
 
-                // Renkler
                 if (data.btnHoverColor) a.style.setProperty('--hover-bg', data.btnHoverColor);
                 if (data.btnHoverBorder) a.style.setProperty('--hover-border', data.btnHoverBorder);
 
-                a.classList.toggle('glow-border', data.btnGlow !== false && opacity > 0);
-                a.classList.toggle('glow-active', data.btnShimmer !== false && opacity > 0);
+                if (data.btnGlow !== false && opacity > 0) a.classList.add('glow-border');
+                if (data.btnShimmer !== false && opacity > 0) a.classList.add('glow-active');
 
                 // ---- LOGO (SVG) ----
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'link-icon';
-                iconSpan.style.opacity = '1';
-                iconSpan.style.filter = 'none';
                 iconSpan.innerHTML = getPlatformLogo(link.url || '', link.title || '');
                 a.appendChild(iconSpan);
 
                 const titleSpan = document.createElement('span');
                 titleSpan.className = 'link-title';
-                titleSpan.style.opacity = '1';
                 titleSpan.textContent = link.title || 'Link';
                 a.appendChild(titleSpan);
 
                 const arrowSpan = document.createElement('span');
                 arrowSpan.className = 'link-arrow';
-                arrowSpan.style.opacity = '1';
                 arrowSpan.textContent = '→';
                 a.appendChild(arrowSpan);
 
@@ -190,6 +177,7 @@ function applyProfileData(data) {
     const musicPlayer = document.getElementById('musicPlayer');
     const audio = document.getElementById('bgMusic');
     const joinOverlay = document.getElementById('joinOverlay');
+    const playBtn = document.getElementById('playBtn');
 
     if (musicPlayer && audio) {
         if (data.musicUrl) {
@@ -198,8 +186,7 @@ function applyProfileData(data) {
             document.getElementById('musicArtist').textContent = data.musicArtist || 'Sanatçı';
             document.getElementById('musicCover').src = data.musicCover || 'https://i.imgur.com/6VBx3io.png';
             
-            const playBtn = document.getElementById('playBtn');
-            if (playBtn) playBtn.style.display = 'none';
+            if (playBtn) playBtn.style.display = 'flex';
 
             const musicOpacity = data.musicOpacity !== undefined ? data.musicOpacity : 0.9;
             const musicBlur = data.musicBlur !== undefined ? data.musicBlur : 10;
@@ -222,9 +209,11 @@ function applyProfileData(data) {
             if (joinOverlay) {
                 if (data.musicAutoplay !== false) {
                     joinOverlay.style.display = 'flex';
+                    if (playBtn) playBtn.textContent = '▶';
                 } else {
                     joinOverlay.style.display = 'none';
                     audio.play().catch(() => {});
+                    if (playBtn) playBtn.textContent = '⏸';
                 }
             }
         } else {
@@ -306,7 +295,28 @@ function applyProfileData(data) {
     }
 }
 
-// ========== YARDIMCI FONKSİYONLAR ==========
+// ============================================================
+// togglePlay – Müzik oynat / durdur (global)
+// ============================================================
+function togglePlay() {
+    const audio = document.getElementById('bgMusic');
+    const btn = document.getElementById('playBtn');
+    const cover = document.querySelector('.music-cover');
+    if (!audio) return;
+    if (audio.paused) {
+        audio.play().catch(() => {});
+        if (btn) btn.textContent = '⏸';
+        if (cover) cover.classList.add('playing');
+    } else {
+        audio.pause();
+        if (btn) btn.textContent = '▶';
+        if (cover) cover.classList.remove('playing');
+    }
+}
+
+// ============================================================
+// YARDIMCI FONKSİYONLAR
+// ============================================================
 function hexToRgb(hex) {
     if (!hex) return '255,255,255';
     hex = hex.replace('#', '');
