@@ -209,6 +209,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 1 !important;
+    filter: none !important;
 }
 .link-icon svg {
     display: block;
