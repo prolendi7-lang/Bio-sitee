@@ -749,6 +749,11 @@
                         <h3>👤 Profil Bilgileri</h3>
                         <input type="text" id="nameInput" placeholder="İsim">
                         <textarea id="bioInput" placeholder="Açıklama" rows="2"></textarea>
+                        <!-- ✅ DOĞRULAMA ROZETİ GÖSTER/GİZLE -->
+                        <div class="toggle-row">
+                            <span>✅ Doğrulanmış hesap rozetini göster</span>
+                            <input type="checkbox" id="showVerifiedBadge" checked>
+                        </div>
                     </div>
 
                     <div class="card">
@@ -1294,6 +1299,8 @@
                 $('showBadge').checked = d.showBadge !== false;
                 $('badgeIcon').value = d.badgeIcon || '✓';
                 $('badgeColor').value = d.badgeColor || 'linear-gradient(135deg, #3B82F6, #8B5CF6)';
+                // ✅ YENİ: showVerifiedBadge
+                $('showVerifiedBadge').checked = d.showVerifiedBadge !== false;
                 $('cardOpacity').value = (d.cardOpacity != null ? d.cardOpacity : 0.8) * 100;
                 $('cov').textContent = Math.round((d.cardOpacity != null ? d.cardOpacity : 0.8) * 100) + '%';
                 $('cardBlur').value = d.cardBlur != null ? d.cardBlur : 20;
@@ -1360,6 +1367,7 @@
                 showBadge: $('showBadge').checked,
                 badgeIcon: $('badgeIcon').value || '✓',
                 badgeColor: $('badgeColor').value || 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
+                showVerifiedBadge: $('showVerifiedBadge').checked, // ✅ YENİ
                 cardOpacity: parseInt($('cardOpacity').value) / 100,
                 cardBlur: parseInt($('cardBlur').value) || 20,
                 bgColor: $('bgColor').value,
@@ -1564,9 +1572,11 @@
                 showBadge: d.showBadge,
                 badgeIcon: d.badgeIcon,
                 badgeColor: d.badgeColor,
+                showVerifiedBadge: d.showVerifiedBadge,   // ✅ YENİ
                 cardOpacity: d.cardOpacity,
                 cardBlur: d.cardBlur,
-                _selectedEffect: selectedEffect            }, '✅ Profil kaydedildi!');
+                _selectedEffect: selectedEffect
+            }, '✅ Profil kaydedildi!');
         });
 
         $('saveDesignBtn').addEventListener('click', () => {
@@ -1796,40 +1806,21 @@
         $('musicBlur').addEventListener('input', function() { $('mbv').textContent = this.value + 'px'; });
         $('btnOpacity').addEventListener('input', function() { $('btnOpacityVal').textContent = this.value + '%'; });
 
-        // Clear Effects Button
-        $('clearEffectsBtn').addEventListener('click', () => {
-            $('cardOpacity').value = 100;
-            $('cardBlur').value = 0;
-            $('btnOpacity').value = 100;
-            $('musicOpacity').value = 100;
-            $('musicBlur').value = 0;
-            $('particlesToggle').checked = false;
+        // Clear Effects
+        document.getElementById('clearEffectsBtn').addEventListener('click', function() {
+            document.getElementById('cardOpacity').value = 100;
+            document.getElementById('cardBlur').value = 0;
+            document.getElementById('btnOpacity').value = 100;
+            document.getElementById('musicOpacity').value = 100;
+            document.getElementById('musicBlur').value = 0;
+            document.getElementById('particlesToggle').checked = false;
             
-            $('cov').textContent = '100%';
-            $('cbv').textContent = '0px';
-            $('btnOpacityVal').textContent = '100%';
-            $('mov').textContent = '100%';
-            $('mbv').textContent = '0px';
-            $('pv').textContent = '0';
-            // Clear Effects Button - Tüm efektleri sıfırla
-document.getElementById('clearEffectsBtn').addEventListener('click', function() {
-    document.getElementById('cardOpacity').value = 100;
-    document.getElementById('cardBlur').value = 0;
-    document.getElementById('btnOpacity').value = 100;
-    document.getElementById('musicOpacity').value = 100;
-    document.getElementById('musicBlur').value = 0;
-    document.getElementById('particlesToggle').checked = false;
-    
-    document.getElementById('cov').textContent = '100%';
-    document.getElementById('cbv').textContent = '0px';
-    document.getElementById('btnOpacityVal').textContent = '100%';
-    document.getElementById('mov').textContent = '100%';
-    document.getElementById('mbv').textContent = '0px';
-    document.getElementById('pv').textContent = '0';
-    
-    pushPreview();
-    showMsg('🌀 Tüm efektler temizlendi!', 'success');
-});
+            document.getElementById('cov').textContent = '100%';
+            document.getElementById('cbv').textContent = '0px';
+            document.getElementById('btnOpacityVal').textContent = '100%';
+            document.getElementById('mov').textContent = '100%';
+            document.getElementById('mbv').textContent = '0px';
+            document.getElementById('pv').textContent = '0';
             
             pushPreview();
             showMsg('🌀 Tüm efektler temizlendi!', 'success');
