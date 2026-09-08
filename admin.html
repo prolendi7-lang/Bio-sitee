@@ -801,9 +801,11 @@
                         <h4>Buton Şekli</h4>
                         <select id="btnShape">
                             <option value="yuvarlak">Yuvarlak (Daire)</option>
-                            <option value="yumusak">Yumuşak Yuvarlak</option>
+                            <option value="kucuk-yuvarlak">Küçük Yuvarlak</option>
                             <option value="dikdortgen">Dikdörtgen</option>
+                            <option value="ince-dikdortgen">İnce Dikdörtgen</option>
                             <option value="kare">Kare</option>
+                            <option value="kucuk-kare">Küçük Kare</option>
                         </select>
 
                         <h4>Buton Efektleri</h4>
@@ -937,6 +939,12 @@
                         </div>
 
                         <button class="btn-action" id="saveBackgroundBtn">💾 Arka Planı Kaydet</button>
+                    </div>
+
+                    <div class="card">
+                        <h3>🌀 Hızlı Ayarlar</h3>
+                        <p class="text-sm mb-8">Tek tıkla tüm opaklık ve bulanıklık efektlerini sıfırla.</p>
+                        <button class="btn-action secondary" id="clearEffectsBtn">🌀 Bulanıklık Olmasın (Tüm Efektleri Temizle)</button>
                     </div>
                 </div>
 
@@ -1787,6 +1795,26 @@
         $('musicOpacity').addEventListener('input', function() { $('mov').textContent = this.value + '%'; });
         $('musicBlur').addEventListener('input', function() { $('mbv').textContent = this.value + 'px'; });
         $('btnOpacity').addEventListener('input', function() { $('btnOpacityVal').textContent = this.value + '%'; });
+
+        // Clear Effects Button
+        $('clearEffectsBtn').addEventListener('click', () => {
+            $('cardOpacity').value = 100;
+            $('cardBlur').value = 0;
+            $('btnOpacity').value = 100;
+            $('musicOpacity').value = 100;
+            $('musicBlur').value = 0;
+            $('particlesToggle').checked = false;
+            
+            $('cov').textContent = '100%';
+            $('cbv').textContent = '0px';
+            $('btnOpacityVal').textContent = '100%';
+            $('mov').textContent = '100%';
+            $('mbv').textContent = '0px';
+            $('pv').textContent = '0';
+            
+            pushPreview();
+            showMsg('🌀 Tüm efektler temizlendi!', 'success');
+        });
     </script>
 </body>
 </html>
