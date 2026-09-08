@@ -43,9 +43,41 @@
             pointer-events: none;
             z-index: 0;
         }
+        #joinOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-direction: column;
+            user-select: none;
+        }
+        #joinOverlay h1 {
+            color: #fff;
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.3);
+        }
+        #joinOverlay p {
+            color: #888;
+            margin-top: 10px;
+            font-size: 1rem;
+        }
     </style>
 </head>
 <body>
+    <div id="joinOverlay">
+        <h1>Click to Join</h1>
+        <p>Müzikle birlikte keşfet</p>
+    </div>
+
     <div class="particles" id="particles"></div>
     <video class="bg-video hidden" id="bgVideo" autoplay muted loop playsinline></video>
     <div class="container">
@@ -77,17 +109,24 @@
 
     <script src="/render.js"></script>
     <script>
-        // ============================================================
-        // PREVIEW — Admin panelinden postMessage ile veri alır
-        // ============================================================
         window.addEventListener('message', (ev) => {
             if (!ev.data || ev.data.type !== 'profile-preview') return;
             const d = Object.assign({}, ev.data.payload, { musicAutoplay: false });
             applyProfileData(d);
         });
 
-        // Admin panele hazır olduğunu bildir
         window.parent.postMessage({ type: 'preview-ready' }, '*');
+
+        const joinOverlay = document.getElementById('joinOverlay');
+        if (joinOverlay) {
+            joinOverlay.addEventListener('click', function() {
+                this.style.display = 'none';
+                const audio = document.getElementById('bgMusic');
+                if (audio && audio.src) {
+                    audio.play().catch(() => {});
+                }
+            });
+        }
     </script>
 </body>
 </html>
