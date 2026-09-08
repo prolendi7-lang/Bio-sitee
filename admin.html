@@ -1811,6 +1811,25 @@
             $('mov').textContent = '100%';
             $('mbv').textContent = '0px';
             $('pv').textContent = '0';
+            // Clear Effects Button - Tüm efektleri sıfırla
+document.getElementById('clearEffectsBtn').addEventListener('click', function() {
+    document.getElementById('cardOpacity').value = 100;
+    document.getElementById('cardBlur').value = 0;
+    document.getElementById('btnOpacity').value = 100;
+    document.getElementById('musicOpacity').value = 100;
+    document.getElementById('musicBlur').value = 0;
+    document.getElementById('particlesToggle').checked = false;
+    
+    document.getElementById('cov').textContent = '100%';
+    document.getElementById('cbv').textContent = '0px';
+    document.getElementById('btnOpacityVal').textContent = '100%';
+    document.getElementById('mov').textContent = '100%';
+    document.getElementById('mbv').textContent = '0px';
+    document.getElementById('pv').textContent = '0';
+    
+    pushPreview();
+    showMsg('🌀 Tüm efektler temizlendi!', 'success');
+});
             
             pushPreview();
             showMsg('🌀 Tüm efektler temizlendi!', 'success');
