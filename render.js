@@ -1,4 +1,5 @@
 function applyProfileData(data) {
+    // ========== TEMEL BİLGİLER ==========
     const avatar = document.getElementById('avatar');
     if (avatar) avatar.src = data.avatar || 'https://i.imgur.com/6VBx3io.png';
 
@@ -56,6 +57,7 @@ function applyProfileData(data) {
         verifiedLabel.classList.add('hidden');
     }
 
+    // ========== LİNKLER ==========
     const linksContainer = document.getElementById('linksContainer');
     if (linksContainer) {
         linksContainer.innerHTML = '';
@@ -66,6 +68,7 @@ function applyProfileData(data) {
                 a.target = '_blank';
                 a.className = 'link-btn';
 
+                // ---- BUTON ŞEKLİ ----
                 const shape = data.btnShape || 'yuvarlak';
                 let borderRadius = '9999px';
                 let padding = '14px 20px';
@@ -113,11 +116,13 @@ function applyProfileData(data) {
                 a.style.width = width;
                 a.style.justifyContent = justifyContent;
 
+                // ---- BUTON OPASİTESİ (ÇÖZÜM: display:none) ----
                 const opacity = data.btnOpacity !== undefined ? parseInt(data.btnOpacity) : 100;
                 if (opacity === 0) {
-                    a.style.display = 'none';
+                    a.style.display = 'none';  // tamamen yok olur, yer kaplamaz
                 } else {
                     a.style.display = 'flex';
+                    // Arka plan ve border opaklığını ayarla, içindekiler hep opak
                     const bgColor = data.btnBgColor || 'rgba(255,255,255,0.04)';
                     const borderColor = data.btnBorderColor || 'rgba(255,255,255,0.08)';
                     if (bgColor.startsWith('#')) {
@@ -149,12 +154,14 @@ function applyProfileData(data) {
                     }
                 }
 
+                // Renkler
                 if (data.btnHoverColor) a.style.setProperty('--hover-bg', data.btnHoverColor);
                 if (data.btnHoverBorder) a.style.setProperty('--hover-border', data.btnHoverBorder);
 
                 a.classList.toggle('glow-border', data.btnGlow !== false && opacity > 0);
                 a.classList.toggle('glow-active', data.btnShimmer !== false && opacity > 0);
 
+                // ---- LOGO (SVG) ----
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'link-icon';
                 iconSpan.style.opacity = '1';
@@ -179,6 +186,7 @@ function applyProfileData(data) {
         }
     }
 
+    // ========== MÜZİK ÇALAR ==========
     const musicPlayer = document.getElementById('musicPlayer');
     const audio = document.getElementById('bgMusic');
     const joinOverlay = document.getElementById('joinOverlay');
@@ -226,6 +234,7 @@ function applyProfileData(data) {
         }
     }
 
+    // ========== ARKA PLAN ==========
     if (data.bgColor) document.body.style.backgroundColor = data.bgColor;
     if (data.bgImage) {
         document.body.style.backgroundImage = `url(${data.bgImage})`;
@@ -248,6 +257,7 @@ function applyProfileData(data) {
         }
     }
 
+    // ========== PARTİKÜLLER ==========
     const particlesContainer = document.getElementById('particles');
     if (particlesContainer) {
         particlesContainer.innerHTML = '';
@@ -269,6 +279,7 @@ function applyProfileData(data) {
         }
     }
 
+    // ========== KART SAYDAMLIK VE BLUR ==========
     const card = document.querySelector('.profile-card');
     if (card) {
         const opacity = data.cardOpacity !== undefined ? data.cardOpacity : 0.8;
@@ -295,6 +306,7 @@ function applyProfileData(data) {
     }
 }
 
+// ========== YARDIMCI FONKSİYONLAR ==========
 function hexToRgb(hex) {
     if (!hex) return '255,255,255';
     hex = hex.replace('#', '');
